@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⛏ Typing Quest — Gene's Adventure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pixel:#5a9e3b;--pixel-dark:#2d5a1b;--pixel-light:#a8d86e;
+  --gold:#f5c542;--gold-dark:#c49a1a;--sky:#4fc3f7;
+  --xp-blue:#3b82f6;--hp-red:#ef4444;--acc-green:#22c55e;
+  --bg:#1a1a2e;--surface:#16213e;--text:#e8f4f8;--text-dim:#94a3b8;
+  --bd:2px solid #2a2a4c;
+}
+html{font-size:20px}
+body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+
+/* THREE-COLUMN LAYOUT */
+.outer{display:flex;min-height:100vh;align-items:flex-start;gap:0;max-width:1400px;margin:0 auto}
+.side-panel{width:160px;flex-shrink:0;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;align-items:center;padding:10px 8px 8px;gap:6px;background:var(--surface);border-right:2px solid #2a2a4c;overflow-y:auto;overflow-x:hidden;justify-content:flex-start}
+.side-panel.right{border-right:none;border-left:2px solid #2a2a4c;width:160px}
+.main{flex:1;min-width:0;padding:12px 14px;max-width:960px}
+.side-label{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--text-dim);text-align:center;line-height:1.6}
+
+/* CHARACTER PANEL */
+
+.char-level-badge{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--gold);text-align:center}
+.char-title-txt{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--pixel-light);text-align:center;line-height:1.6;padding:0 4px}
+
+/* MAP PANEL */
+#map-svg{width:116px;height:auto}
+.map-legend{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--text-dim);text-align:left;padding:0 4px;line-height:1.9}
+
+/* HEADER */
+.hdr{background:var(--surface);border:3px solid var(--pixel-dark);border-radius:8px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.hdr-title{font-family:'Press Start 2P',monospace;font-size:11px;color:var(--pixel-light);line-height:1.5}
+.hdr-title span{color:var(--gold)}
+.hdr-player{font-size:16px;font-weight:800;color:var(--text)}
+.hdr-rank{font-size:10px;color:var(--gold);font-family:'Press Start 2P',monospace;line-height:1.6}
+.hdr-btns{display:flex;gap:6px}
+.hdr-btn{background:none;border:2px solid #3a3a5c;border-radius:5px;color:var(--text-dim);font-size:13px;font-family:'Nunito',sans-serif;font-weight:700;padding:6px 11px;cursor:pointer;white-space:nowrap}
+.hdr-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+/* TABS */
+.nav-tabs{display:flex;gap:6px;margin-bottom:10px}
+.nav-tab{flex:1;background:var(--surface);border:2px solid #2a2a4c;border-radius:6px;color:var(--text-dim);font-family:'Press Start 2P',monospace;font-size:9px;padding:10px 4px;cursor:pointer;text-align:center;line-height:1.5}
+.nav-tab:hover{border-color:var(--pixel);color:var(--pixel-light)}
+.nav-tab.active{background:var(--pixel-dark);border-color:var(--pixel);color:var(--pixel-light)}
+
+/* SCREEN */
+.screen{display:none}.screen.active{display:block}
+
+/* XP BAR */
+.xp-section{background:var(--surface);border:var(--bd);border-radius:6px;padding:11px 16px;margin-bottom:10px}
+.xp-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.xp-label{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--text-dim)}
+.xp-nums{font-family:'VT323',monospace;font-size:22px;color:var(--gold)}
+.xp-track{width:100%;height:18px;background:#0a0a1a;border:2px solid #3a3a5c;border-radius:3px;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--xp-blue),#60a5fa);transition:width .8s ease;position:relative}
+.xp-fill::after{content:'';position:absolute;top:3px;left:6px;right:6px;height:5px;background:rgba(255,255,255,.25);border-radius:2px}
+.xp-sub{font-family:'Press Start 2P',monospace;font-size:7px;color:#6a6a8a;margin-top:5px}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.stat-card{background:var(--surface);border:var(--bd);border-radius:6px;padding:10px;text-align:center}
+.stat-val{font-family:'Press Start 2P',monospace;font-size:15px;margin-bottom:4px}
+.stat-lbl{font-size:10px;color:var(--text-dim);font-weight:700;text-transform:uppercase}
+.c-sky{color:var(--sky)}.c-green{color:var(--acc-green)}.c-gold{color:var(--gold)}.c-pink{color:#f472b6}
+
+/* LEVEL BANNER */
+.level-banner{background:var(--surface);border:2px solid var(--pixel-dark);border-radius:8px;padding:13px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px}
+.level-badge{width:64px;height:64px;background:var(--pixel-dark);border:3px solid var(--pixel);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.lvl-num{font-family:'Press Start 2P',monospace;font-size:20px;color:var(--pixel-light)}
+.lvl-word{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--pixel)}
+.level-info-title{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--gold);margin-bottom:5px;line-height:1.6}
+.level-info-sub{font-size:13px;color:var(--text-dim);line-height:1.5}
+.level-info-target{font-size:13px;color:var(--sky);margin-top:4px;font-weight:700}
+
+/* SECTION HEADERS */
+.sec-hdr{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--pixel-light);margin-bottom:9px;display:flex;align-items:center;gap:8px}
+.sec-hdr::after{content:'';flex:1;height:1px;background:#2a2a4c}
+
+/* LESSON CARDS */
+.lesson-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.lesson-card{background:var(--surface);border:2px solid #2a2a4c;border-radius:7px;padding:12px 15px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:border-color .15s,transform .1s}
+.lesson-card:hover{border-color:var(--pixel);transform:translateX(2px)}
+.lesson-card.locked{opacity:.4;cursor:not-allowed}.lesson-card.locked:hover{transform:none;border-color:#2a2a4c}
+.lesson-card.done{border-color:var(--acc-green)}
+.lesson-card.active-lesson{border-color:var(--gold)}
+.lesson-icon{font-size:26px;flex-shrink:0;width:38px;text-align:center}
+.lesson-body{flex:1}
+.lesson-name{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--text);margin-bottom:5px;line-height:1.5}
+.lesson-desc{font-size:12px;color:var(--text-dim);line-height:1.4}
+.lesson-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:4px;white-space:nowrap;flex-shrink:0}
+.badge-done{background:rgba(34,197,94,.2);color:var(--acc-green)}
+.badge-next{background:rgba(245,197,66,.2);color:var(--gold)}
+.badge-locked{background:rgba(100,100,120,.15);color:#556}
+
+/* QUEST MAP */
+#quest-map-container{position:relative;width:100%;margin-bottom:12px}
+#quest-map-svg{width:100%;border-radius:10px;border:2px solid #2a2a4c}
+.quest-tooltip{
+  display:none;position:absolute;background:#0f1a2e;border:2px solid var(--gold);border-radius:8px;
+  padding:10px 14px;font-family:'Nunito',sans-serif;pointer-events:none;z-index:50;
+  min-width:180px;max-width:240px;box-shadow:0 4px 20px rgba(0,0,0,.6)
+}
+.quest-tooltip.show{display:block}
+.qt-name{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--gold);margin-bottom:7px;line-height:1.6}
+.qt-desc{font-size:14px;color:var(--text);margin-bottom:6px;line-height:1.5}
+.qt-xp{font-size:14px;color:var(--acc-green);font-weight:700}
+.qt-lock{font-size:13px;color:var(--hp-red);margin-top:5px}
+.qt-diff{font-size:11px;color:var(--sky);margin-top:2px}
+
+/* TYPING SCREEN */
+.typing-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px}
+.typing-title{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--pixel-light);line-height:1.6}
+.back-btn{background:none;border:2px solid #3a3a5c;border-radius:5px;color:var(--text-dim);font-size:13px;font-family:'Nunito',sans-serif;font-weight:700;padding:6px 12px;cursor:pointer}
+.back-btn:hover{border-color:var(--pixel);color:var(--text)}
+
+/* LESSON INTRO */
+.lesson-intro{background:var(--surface);border:2px solid var(--gold-dark);border-radius:8px;padding:18px;margin-bottom:13px}
+.intro-title{font-family:'Press Start 2P',monospace;font-size:11px;color:var(--gold);margin-bottom:11px;line-height:1.7}
+.intro-text{font-size:14px;color:var(--text);line-height:1.9;margin-bottom:11px}
+.intro-keys{display:flex;gap:9px;flex-wrap:wrap;margin:11px 0}
+.intro-key{background:#0a0a1a;border:2px solid var(--pixel);border-radius:5px;padding:7px 14px;font-family:'Press Start 2P',monospace;font-size:13px;color:var(--pixel-light)}
+.finger-hint{font-size:13px;color:var(--sky);font-weight:700;margin-top:5px;line-height:1.5}
+.start-lesson-btn{background:var(--pixel-dark);border:2px solid var(--pixel);border-radius:6px;color:var(--pixel-light);font-family:'Press Start 2P',monospace;font-size:10px;padding:12px 22px;cursor:pointer;margin-top:12px;transition:background .15s}
+.start-lesson-btn:hover{background:var(--pixel);color:#fff}
+
+/* LIVE STATS */
+.live-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:11px}
+.live-stat{background:var(--surface);border:var(--bd);border-radius:6px;padding:9px 12px;text-align:center}
+.live-stat-val{font-family:'Press Start 2P',monospace;font-size:15px}
+.live-stat-lbl{font-size:10px;color:var(--text-dim);font-weight:700}
+.prog-wrap{background:#0a0a1a;border:var(--bd);border-radius:4px;height:12px;margin-bottom:13px;overflow:hidden}
+.prog-fill{height:100%;background:var(--pixel);transition:width .1s}
+
+/* PASSAGE */
+.passage-box{background:var(--surface);border:var(--bd);border-radius:7px;padding:16px 18px;margin-bottom:11px;font-size:21px;line-height:2.4;min-height:100px;font-family:'Nunito',sans-serif;letter-spacing:.3px;word-spacing:4px}
+.ch-ok{color:var(--acc-green)}
+.ch-err{color:var(--hp-red);background:rgba(239,68,68,.2);border-radius:2px}
+.ch-cur{border-left:3px solid var(--text);animation:blink .7s infinite}
+.ch-todo{color:#3a3a5a}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.typing-input{width:100%;background:var(--surface);border:2px solid var(--pixel-dark);border-radius:6px;padding:13px 16px;color:var(--text);font-family:'Nunito',sans-serif;font-size:17px;outline:none;resize:none;height:58px}
+.typing-input:focus{border-color:var(--pixel)}
+.typing-hint{font-size:12px;color:var(--text-dim);margin:7px 0 11px;text-align:center}
+
+/* KEYBOARD */
+.kb-wrap{background:var(--surface);border:var(--bd);border-radius:8px;padding:12px 10px;margin-top:9px;overflow-x:auto}
+.kb-label{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--text-dim);margin-bottom:8px;text-align:center}
+.kb-row{display:flex;justify-content:center;gap:4px;margin-bottom:4px}
+.kb-key{min-width:42px;height:42px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P',monospace;font-size:8px;user-select:none;background:#111827;border:2px solid #1e2a3a;color:#445;transition:all .12s;flex-shrink:0}
+.kb-key.wide{min-width:54px}.kb-key.wider{min-width:72px}.kb-key.space{min-width:190px}
+.kb-key.home-row{border-color:#1e2f42}
+.kb-key.hl{background:#1a3322;border-color:var(--pixel);color:var(--pixel-light);box-shadow:0 0 9px rgba(90,158,59,.5)}
+.kb-key.hl-shift{background:#0f1f2e;border-color:var(--sky);color:var(--sky)}
+.kb-key.f-l4{--fc:#e879f9}.kb-key.f-l3{--fc:#f472b6}.kb-key.f-l2{--fc:#fb923c}
+.kb-key.f-l1{--fc:#facc15}.kb-key.f-r1{--fc:#86efac}.kb-key.f-r2{--fc:#67e8f9}
+.kb-key.f-r3{--fc:#818cf8}.kb-key.f-r4{--fc:#f87171}
+.kb-key.hl.f-l4,.kb-key.hl.f-l3,.kb-key.hl.f-l2,.kb-key.hl.f-l1,
+.kb-key.hl.f-r1,.kb-key.hl.f-r2,.kb-key.hl.f-r3,.kb-key.hl.f-r4{
+  background:rgba(26,40,26,.9);border-color:var(--fc);color:var(--fc);box-shadow:0 0 11px rgba(90,158,59,.3)}
+
+/* RESULTS */
+.results-box{background:var(--surface);border:3px solid var(--gold-dark);border-radius:10px;padding:24px;text-align:center;margin-bottom:13px}
+.results-title{font-family:'Press Start 2P',monospace;font-size:13px;color:var(--gold);margin-bottom:15px;line-height:1.9}
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:13px 0}
+.res-stat{background:#0a0a1a;border:var(--bd);border-radius:6px;padding:11px}
+.res-val{font-family:'Press Start 2P',monospace;font-size:17px;margin-bottom:4px}
+.res-lbl{font-size:11px;color:var(--text-dim);font-weight:700}
+.xp-earned{font-family:'Press Start 2P',monospace;font-size:12px;color:var(--gold);margin:13px 0 6px}
+.xp-breakdown{font-size:13px;color:var(--text-dim);line-height:2}
+.results-msg{font-size:14px;color:var(--pixel-light);margin:11px 0;font-weight:800;line-height:1.7}
+
+/* FANFARE */
+.fanfare-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:150;align-items:center;justify-content:center;flex-direction:column}
+.fanfare-overlay.show{display:flex}
+.fanfare-box{background:var(--surface);border:4px solid var(--gold);border-radius:14px;padding:32px 30px;text-align:center;max-width:400px;width:90%;animation:popIn .35s ease}
+.fanfare-stars{font-size:44px;letter-spacing:10px;margin-bottom:11px;animation:starPop .5s ease .1s both}
+@keyframes starPop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes popIn{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+.fanfare-title{font-family:'Press Start 2P',monospace;font-size:15px;color:var(--gold);margin-bottom:9px;line-height:1.8}
+.fanfare-sub{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--pixel-light);margin-bottom:11px;line-height:1.7}
+.fanfare-msg{font-size:15px;color:var(--text);margin-bottom:16px;line-height:1.7}
+.fanfare-xp{font-family:'Press Start 2P',monospace;font-size:11px;color:var(--gold);margin-bottom:15px}
+.confetti-wrap{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden}
+.confetti-piece{position:absolute;width:8px;height:8px;border-radius:2px;animation:confettiFall linear forwards}
+@keyframes confettiFall{from{transform:translateY(-20px) rotate(0deg);opacity:1}to{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+/* MODALS */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--surface);border:4px solid var(--gold);border-radius:12px;padding:30px;text-align:center;max-width:360px;width:90%;animation:popIn .3s ease}
+.modal-icon{font-size:52px;margin-bottom:11px}
+.modal-title{font-family:'Press Start 2P',monospace;font-size:13px;color:var(--gold);margin-bottom:9px;line-height:1.9}
+.modal-sub{font-size:14px;color:var(--text-dim);line-height:1.6;margin-bottom:15px}
+.modal-new-title{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--pixel-light);margin-bottom:15px;line-height:1.7}
+
+/* SAVE PANEL */
+.save-panel{background:var(--surface);border:var(--bd);border-radius:7px;padding:16px;margin-bottom:11px}
+.save-panel h3{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--gold);margin-bottom:13px}
+.save-row{display:flex;gap:9px;align-items:center;margin-bottom:9px;flex-wrap:wrap}
+.save-row label{font-size:13px;color:var(--text-dim);min-width:90px}
+.save-row input[type=text]{background:#0a0a1a;border:2px solid #3a3a5c;border-radius:4px;color:var(--text);font-family:'Nunito',sans-serif;font-size:14px;padding:7px 11px;flex:1;min-width:110px;outline:none}
+.save-row input[type=text]:focus{border-color:var(--pixel)}
+.save-info{font-size:12px;color:var(--text-dim);line-height:1.7;margin-top:7px}
+
+/* BUTTONS */
+.btn-gold{background:var(--gold-dark);border:2px solid var(--gold);border-radius:6px;color:var(--gold);font-family:'Press Start 2P',monospace;font-size:9px;padding:10px 18px;cursor:pointer;margin:3px;transition:background .15s}
+.btn-gold:hover{background:var(--gold);color:#1a0f00}
+.btn-green{background:var(--pixel-dark);border:2px solid var(--pixel);border-radius:6px;color:var(--pixel-light);font-family:'Press Start 2P',monospace;font-size:9px;padding:10px 18px;cursor:pointer;margin:3px;transition:background .15s}
+.btn-green:hover{background:var(--pixel);color:#fff}
+.btn-dim{background:none;border:2px solid #3a3a5c;border-radius:6px;color:var(--text-dim);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;padding:10px 18px;cursor:pointer;margin:3px}
+.btn-dim:hover{border-color:var(--pixel);color:var(--text)}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#0f3460;border:2px solid var(--pixel);border-radius:6px;padding:9px 20px;font-family:'Press Start 2P',monospace;font-size:9px;color:var(--pixel-light);z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+@media(max-width:900px){
+  .side-panel{display:none}
+}
+@media(max-width:600px){
+  html{font-size:16px}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .kb-key{min-width:28px;height:30px;font-size:7px}
+  .kb-key.space{min-width:120px}
+  .kb-key.wide{min-width:42px}
+  .kb-key.wider{min-width:56px}
+}
+</style>
+</head>
+<body>
+<div class="outer">
+
+<!-- LEFT: CHARACTER PANEL -->
+<div class="side-panel" id="char-panel">
+  <div class="side-label">YOUR<br>HERO</div>
+  <img id="char-img" src="LVL_1.png" style="width:140px;height:auto;image-rendering:pixelated;display:block">
+  <div class="char-level-badge" id="char-lvl-badge">LVL 1</div>
+  <div class="char-title-txt" id="char-title-txt">Tenderfoot<br>Typist</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="hdr-title">⛏ TYPING<br><span>QUEST</span></div>
+      <div>
+        <div class="hdr-player" id="hdr-player">Gene</div>
+        <div class="hdr-rank" id="hdr-rank">LVL 1 · Tenderfoot Typist</div>
+      </div>
+    </div>
+    <div class="hdr-btns">
+      <button class="hdr-btn" onclick="showSaveScreen()">💾 Save</button>
+      <button class="hdr-btn" onclick="confirmReset()" style="border-color:#5a2a2a;color:#f87171">↺ Reset</button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="nav-tabs">
+    <div class="nav-tab active" id="tab-dash" onclick="switchTab('dash')">🏠 Camp</div>
+    <div class="nav-tab" id="tab-lessons" onclick="switchTab('lessons')">📖 Lessons</div>
+    <div class="nav-tab" id="tab-quests" onclick="switchTab('quests')">🗺️ Quest Map</div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="screen active" id="screen-dash">
+    <div class="level-banner">
+      <div class="level-badge"><div class="lvl-num" id="badge-lvl">1</div><div class="lvl-word">LVL</div></div>
+      <div>
+        <div class="level-info-title" id="rank-title">🌱 Tenderfoot Typist</div>
+        <div class="level-info-sub" id="rank-desc">Your quest begins! Every great typist started right here.</div>
+        <div class="level-info-target" id="rank-target">🎯 Goal: 15 WPM · 85% Accuracy</div>
+      </div>
+    </div>
+    <div class="xp-section">
+      <div class="xp-row"><div class="xp-label">⚡ XP</div><div class="xp-nums"><span id="xp-cur">0</span> / <span id="xp-max">200</span></div></div>
+      <div class="xp-track"><div class="xp-fill" id="xp-bar" style="width:0%"></div></div>
+      <div class="xp-sub" id="xp-sub">Next rank: Scout Scribe (Lvl 2)</div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val c-sky" id="s-wpm">0</div><div class="stat-lbl">Best WPM</div></div>
+      <div class="stat-card"><div class="stat-val c-green" id="s-acc">—</div><div class="stat-lbl">Top Acc</div></div>
+      <div class="stat-card"><div class="stat-val c-gold" id="s-streak">0</div><div class="stat-lbl">Streak 🔥</div></div>
+      <div class="stat-card"><div class="stat-val c-pink" id="s-lessons">0</div><div class="stat-lbl">Lessons</div></div>
+    </div>
+    <div class="sec-hdr">CONTINUE YOUR JOURNEY</div>
+    <div id="dash-next"></div>
+  </div>
+
+  <!-- LESSONS -->
+  <div class="screen" id="screen-lessons">
+    <div id="lessons-list"></div>
+  </div>
+
+  <!-- QUEST MAP -->
+  <div class="screen" id="screen-quests">
+    <div id="quest-map-container">
+      <svg id="quest-map-svg" viewBox="0 0 800 560" xmlns="http://www.w3.org/2000/svg" style="min-height:520px"></svg>
+      <div class="quest-tooltip" id="quest-tooltip"></div>
+    </div>
+  </div>
+
+  <!-- LESSON TYPING -->
+  <div class="screen" id="screen-lesson">
+    <div class="typing-hdr">
+      <div class="typing-title" id="lesson-title-hdr">Lesson</div>
+      <button class="back-btn" onclick="goBack()">← Back</button>
+    </div>
+    <div id="lesson-intro-area"></div>
+    <div id="lesson-typing-area" style="display:none">
+      <div class="live-stats">
+        <div class="live-stat"><div class="live-stat-val c-sky" id="ll-wpm">0</div><div class="live-stat-lbl">WPM</div></div>
+        <div class="live-stat"><div class="live-stat-val c-green" id="ll-acc">100%</div><div class="live-stat-lbl">Accuracy</div></div>
+        <div class="live-stat"><div class="live-stat-val" style="color:var(--hp-red)" id="ll-time">0:00</div><div class="live-stat-lbl">Time</div></div>
+      </div>
+      <div class="prog-wrap"><div class="prog-fill" id="ll-prog" style="width:0%"></div></div>
+      <div class="passage-box" id="ll-passage"></div>
+      <textarea class="typing-input" id="ll-input" placeholder="Start typing..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+      <div class="typing-hint">Accuracy first — speed comes with practice!</div>
+      <div class="kb-wrap"><div class="kb-label">NEXT KEY TO PRESS</div><div id="kb-render"></div></div>
+    </div>
+  </div>
+
+  <!-- QUEST TYPING -->
+  <div class="screen" id="screen-quest">
+    <div class="typing-hdr">
+      <div class="typing-title" id="quest-title-hdr">Quest</div>
+      <button class="back-btn" onclick="goBack()">← Back</button>
+    </div>
+    <div class="live-stats">
+      <div class="live-stat"><div class="live-stat-val c-sky" id="qt-wpm">0</div><div class="live-stat-lbl">WPM</div></div>
+      <div class="live-stat"><div class="live-stat-val c-green" id="qt-acc">100%</div><div class="live-stat-lbl">Accuracy</div></div>
+      <div class="live-stat"><div class="live-stat-val" style="color:var(--hp-red)" id="qt-time">0:00</div><div class="live-stat-lbl">Time</div></div>
+    </div>
+    <div class="prog-wrap"><div class="prog-fill" id="qt-prog" style="width:0%"></div></div>
+    <div class="passage-box" id="qt-passage"></div>
+    <textarea class="typing-input" id="qt-input" placeholder="Start typing..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+    <div class="typing-hint">Accuracy counts more than speed!</div>
+    <div class="kb-wrap"><div class="kb-label">NEXT KEY TO PRESS</div><div id="kb-render-q"></div></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="screen" id="screen-results">
+    <div class="results-box">
+      <div class="results-title" id="res-title">COMPLETE!</div>
+      <div class="results-grid">
+        <div class="res-stat"><div class="res-val c-sky" id="res-wpm">0</div><div class="res-lbl">WPM</div></div>
+        <div class="res-stat"><div class="res-val c-green" id="res-acc">0%</div><div class="res-lbl">Accuracy</div></div>
+        <div class="res-stat"><div class="res-val" style="color:var(--text)" id="res-correct">0</div><div class="res-lbl">Correct</div></div>
+        <div class="res-stat"><div class="res-val" style="color:var(--hp-red)" id="res-errors">0</div><div class="res-lbl">Errors</div></div>
+      </div>
+      <div class="xp-earned" id="res-xp">+ 0 XP</div>
+      <div class="xp-breakdown" id="res-breakdown"></div>
+      <div class="results-msg" id="res-msg"></div>
+    </div>
+    <div style="text-align:center">
+      <button class="btn-green" onclick="goBack()">🏠 Back to Camp</button>
+      <button class="btn-gold" onclick="retryActivity()">↺ Try Again</button>
+      <button class="btn-dim" id="res-next-btn" onclick="nextActivity()" style="display:none">Next Lesson →</button>
+    </div>
+  </div>
+
+  <!-- SAVE -->
+  <div class="screen" id="screen-save">
+    <div class="typing-hdr">
+      <div class="typing-title">💾 SAVE PROGRESS</div>
+      <button class="back-btn" onclick="goBack()">← Back</button>
+    </div>
+    <div class="save-panel">
+      <h3>PLAYER NAME</h3>
+      <div class="save-row">
+        <label>Name:</label>
+        <input type="text" id="name-input" placeholder="Gene" maxlength="20">
+        <button class="btn-green" onclick="saveName()" style="padding:8px 13px">SAVE</button>
+      </div>
+    </div>
+    <div class="save-panel">
+      <h3>📤 EXPORT SAVE</h3>
+      <p class="save-info">Download your progress. Keep it in Documents or Desktop. Load it anytime to restore your level, XP, and lessons.</p>
+      <div style="margin-top:11px"><button class="btn-gold" onclick="exportSave()">⬇ Download Save File</button></div>
+    </div>
+    <div class="save-panel">
+      <h3>📥 LOAD SAVE</h3>
+      <p class="save-info">Pick a previously exported save file to restore all progress.</p>
+      <div style="margin-top:11px">
+        <input type="file" id="load-file" accept=".json" style="display:none" onchange="importSave(event)">
+        <button class="btn-gold" onclick="document.getElementById('load-file').click()">⬆ Choose Save File</button>
+      </div>
+    </div>
+    <div class="save-panel" style="border-color:#3a1a1a">
+      <h3 style="color:var(--hp-red)">⚠ RESET</h3>
+      <p class="save-info">Erase all progress. Export first!</p>
+      <div style="margin-top:11px"><button class="btn-dim" onclick="confirmReset()" style="border-color:#5a2a2a;color:#f87171">Reset Everything</button></div>
+    </div>
+  </div>
+</div><!-- .main -->
+
+<!-- RIGHT: MAP PANEL -->
+<div class="side-panel right" id="map-panel">
+  <div class="side-label">LESSON<br>ROAD</div>
+  <svg id="map-mini-svg" xmlns="http://www.w3.org/2000/svg" style="width:144px;height:auto;display:block;flex-shrink:0;margin-top:4px"></svg>
+  <div class="map-legend" id="map-legend"></div>
+</div>
+
+</div><!-- .outer -->
+
+<!-- FANFARE -->
+<div class="fanfare-overlay" id="fanfare">
+  <div class="confetti-wrap" id="confetti"></div>
+  <div class="fanfare-box">
+    <div class="fanfare-stars" id="fanfare-stars">⭐⭐⭐</div>
+    <div class="fanfare-title" id="fanfare-title">LESSON COMPLETE!</div>
+    <div class="fanfare-sub" id="fanfare-sub">You crushed it!</div>
+    <div class="fanfare-msg" id="fanfare-msg"></div>
+    <div class="fanfare-xp" id="fanfare-xp">+ 50 XP</div>
+    <button class="btn-gold" onclick="closeFanfare()" style="margin-top:5px">AWESOME! ★</button>
+  </div>
+</div>
+
+<!-- LEVEL UP -->
+<div class="modal-overlay" id="levelup-modal">
+  <div class="modal-box">
+    <div class="modal-icon" id="modal-icon">🎉</div>
+    <div class="modal-title">LEVEL UP!</div>
+    <div class="modal-sub" id="modal-desc">You reached a new rank!</div>
+    <div class="modal-new-title" id="modal-rank"></div>
+    <button class="btn-gold" onclick="closeLevelUp()">HECK YEAH!</button>
+  </div>
+</div>
+
+<!-- RESET CONFIRM -->
+<div class="modal-overlay" id="reset-modal">
+  <div class="modal-box" style="border-color:#ef4444">
+    <div class="modal-icon">⚠️</div>
+    <div class="modal-title" style="color:#ef4444;font-size:11px">RESET PROGRESS?</div>
+    <div class="modal-sub" style="margin-bottom:6px">This will erase <strong>all</strong> of Gene's XP, levels, and completed lessons.</div>
+    <div class="modal-sub" style="color:#f87171;font-size:12px;margin-bottom:18px">This cannot be undone! Export a save file first if you want a backup.</div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="btn-dim" onclick="closeResetModal()" style="font-size:13px">✕ Cancel</button>
+      <button class="btn-gold" onclick="doReset()" style="border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,.1)">↺ Yes, Reset</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+//  KEYBOARD
+// ============================================================
+
+const KB_ROWS=[
+  [{k:'`',f:'l4'},{k:'1',f:'l4'},{k:'2',f:'l3'},{k:'3',f:'l2'},{k:'4',f:'l1'},{k:'5',f:'l1'},{k:'6',f:'r1'},{k:'7',f:'r1'},{k:'8',f:'r2'},{k:'9',f:'r3'},{k:'0',f:'r4'},{k:'-',f:'r4'},{k:'=',f:'r4'},{k:'⌫',f:'',w:'wider'}],
+  [{k:'Tab',f:'',w:'wider'},{k:'q',f:'l4'},{k:'w',f:'l3'},{k:'e',f:'l2'},{k:'r',f:'l1'},{k:'t',f:'l1'},{k:'y',f:'r1'},{k:'u',f:'r1'},{k:'i',f:'r2'},{k:'o',f:'r3'},{k:'p',f:'r4'},{k:'[',f:'r4'},{k:']',f:'r4'},{k:'\\',f:'r4'}],
+  [{k:'Caps',f:'',w:'wider'},{k:'a',f:'l4',hr:1},{k:'s',f:'l3',hr:1},{k:'d',f:'l2',hr:1},{k:'f',f:'l1',hr:1},{k:'g',f:'l1'},{k:'h',f:'r1'},{k:'j',f:'r1',hr:1},{k:'k',f:'r2',hr:1},{k:'l',f:'r3',hr:1},{k:';',f:'r4',hr:1},{k:"'",f:'r4'},{k:'↵',f:'',w:'wide'}],
+  [{k:'⇧L',f:'',w:'wider',sh:1},{k:'z',f:'l4'},{k:'x',f:'l4'},{k:'c',f:'l3'},{k:'v',f:'l2'},{k:'b',f:'l1'},{k:'n',f:'r1'},{k:'m',f:'r1'},{k:',',f:'r2'},{k:'.',f:'r3'},{k:'/',f:'r4'},{k:'⇧R',f:'',w:'wider',sh:1}],
+  [{k:'Ctrl',f:'',w:'wide'},{k:'Alt',f:''},{k:'SPACE',f:'',w:'space'},{k:'Alt',f:''},{k:'Ctrl',f:'',w:'wide'}],
+];
+const CHAR_MAP={};
+(function(){
+  const plain=['`1234567890-=','qwertyuiop[]\\','asdfghjkl;\'','zxcvbnm,./'];
+  const sm={'~':'`','!':'1','@':'2','#':'3','$':'4','%':'5','^':'6','&':'7','*':'8','(':'9',')':'0','_':'-','+':'=',
+    'Q':'q','W':'w','E':'e','R':'r','T':'t','Y':'y','U':'u','I':'i','O':'o','P':'p','{':'[','}':']','|':'\\',
+    'A':'a','S':'s','D':'d','F':'f','G':'g','H':'h','J':'j','K':'k','L':'l',':':';','"':'\'',
+    'Z':'z','X':'x','C':'c','V':'v','B':'b','N':'n','M':'m','<':',','>':'.','?':'/'};
+  plain.forEach(row=>[...row].forEach(c=>CHAR_MAP[c]={key:c,shift:false}));
+  Object.entries(sm).forEach(([c,b])=>CHAR_MAP[c]={key:b,shift:true});
+  CHAR_MAP[' ']={key:'SPACE',shift:false};
+})();
+
+function buildKB(cid){
+  const w=document.getElementById(cid);w.innerHTML='';
+  KB_ROWS.forEach(row=>{
+    const d=document.createElement('div');d.className='kb-row';
+    row.forEach(({k,f,w,hr,sh})=>{
+      const s=document.createElement('span');
+      let c='kb-key';if(w)c+=' '+w;if(hr)c+=' home-row';if(f)c+=' f-'+f;
+      s.className=c;s.textContent=k;s.dataset.key=k.toLowerCase();if(sh)s.dataset.isshift='1';
+      d.appendChild(s);
+    });
+    w.appendChild(d);
+  });
+}
+function hlKey(cid,ch){
+  const w=document.getElementById(cid);if(!w)return;
+  w.querySelectorAll('.kb-key').forEach(e=>e.classList.remove('hl','hl-shift'));
+  if(!ch)return;
+  const info=CHAR_MAP[ch];if(!info)return;
+  const tk=info.key.toLowerCase();
+  w.querySelectorAll('.kb-key').forEach(e=>{
+    if(e.dataset.key===tk&&!e.dataset.isshift)e.classList.add('hl');
+    if(info.shift&&e.dataset.isshift)e.classList.add('hl-shift');
+  });
+}
+
+// ============================================================
+//  GAME DATA
+// ============================================================
+const LEVELS=[
+  {lvl:1,title:"Tenderfoot Typist",icon:"🌱",desc:"Every great typist started right here. Let's go!",target:"15 WPM · 85% Acc",xpNeeded:200},
+  {lvl:2,title:"Scout Scribe",icon:"📜",desc:"You know your home row — a true foundation!",target:"18 WPM · 85% Acc",xpNeeded:350},
+  {lvl:3,title:"Campfire Coder",icon:"🔥",desc:"The whole keyboard is opening up before you!",target:"20 WPM · 88% Acc",xpNeeded:550},
+  {lvl:4,title:"Trail Blazer",icon:"🧭",desc:"Capitals and new rows? No problem for you!",target:"22 WPM · 88% Acc",xpNeeded:800},
+  {lvl:5,title:"Pixel Pioneer",icon:"⛏",desc:"Steve himself would be impressed by your speed!",target:"25 WPM · 90% Acc",xpNeeded:1100},
+  {lvl:6,title:"Poké-Typist",icon:"⚡",desc:"You've evolved! Pikachu can't keep up.",target:"28 WPM · 90% Acc",xpNeeded:1500},
+  {lvl:7,title:"Diamond Miner",icon:"💎",desc:"Digging deep for speed and accuracy.",target:"32 WPM · 92% Acc",xpNeeded:2000},
+  {lvl:8,title:"Eagle Scout Typist",icon:"🦅",desc:"You've earned the highest honor on the keyboard trail.",target:"36 WPM · 92% Acc",xpNeeded:2600},
+  {lvl:9,title:"Waheguru's Scribe",icon:"🙏",desc:"The sacred scrolls bow to your skill. Sat Sri Akal!",target:"40 WPM · 93% Acc",xpNeeded:3400},
+  {lvl:10,title:"Temple Scribe",icon:"🏯",desc:"Legendary. Khloe and Koda are doing the zoomies in your honor.",target:"45 WPM · 95% Acc",xpNeeded:9999},
+];
+function getLd(l){return LEVELS[Math.min(l-1,9)];}
+function getNextLd(l){return LEVELS[Math.min(l,9)];}
+function xpForLevel(l){let t=0;for(let i=1;i<l;i++)t+=LEVELS[i-1].xpNeeded;return t;}
+
+// ============================================================
+//  LESSONS  (id, phase, name, intro, keys, drills[])
+// ============================================================
+const LESSONS=[
+  // ---- PHASE 1: HOME ROW LEFT ----
+  {id:'hr1',phase:'Phase 1: Home Row',name:'Meet Your Left Hand',
+   intro:"Welcome, Gene! Place your LEFT hand on the keyboard. Your fingers go here:\n\n• Pinky finger → A\n• Ring finger → S\n• Middle finger → D\n• Index finger → F\n\nThese are called the HOME ROW keys. Your fingers live here! Feel the small bump on the F key — that's your anchor!",
+   keys:['a','s','d','f'],finger:"Left hand: Pinky=A, Ring=S, Middle=D, Index=F",
+   xp:50,unlocks:'hr2',minLessons:0,
+   drills:[
+     'aaa sss ddd fff aaa sss ddd fff',
+     'asdf asdf asdf asdf asdf asdf',
+     'a s d f a s d f a s f d s a',
+     'add sad fad dad sag gas sad fad',
+   ]
+  },
+  {id:'hr2',phase:'Phase 1: Home Row',name:'Meet Your Right Hand',
+   intro:"Great job with your left hand! Now for the RIGHT hand:\n\n• Index finger → J\n• Middle finger → K\n• Ring finger → L\n• Pinky finger → ; (semicolon)\n\nFeel the bump on J — that's your right hand anchor! Both index fingers rest on F and J.",
+   keys:['j','k','l',';'],finger:"Right hand: Index=J, Middle=K, Ring=L, Pinky=;",
+   xp:50,unlocks:'hr3',minLessons:1,
+   drills:[
+     'jjj kkk lll ;;; jjj kkk lll ;;;',
+     'jkl; jkl; jkl; jkl; jkl; jkl;',
+     'j k l ; j k l ; j l k ; j k l',
+     'jak lak lad jak lad jal lal kak',
+   ]
+  },
+  {id:'hr3',phase:'Phase 1: Home Row',name:'Both Hands Together',
+   intro:"Amazing! Now use BOTH hands at the same time. Left hand on ASDF, right hand on JKL;\n\nThe trick: after each key, bring your fingers BACK to home position. Don't let them wander!",
+   keys:['a','s','d','f','j','k','l',';'],finger:"Left: ASDF · Right: JKL;",
+   xp:60,unlocks:'hr4',minLessons:2,
+   drills:[
+     'asdf jkl; asdf jkl; asdf jkl;',
+     'a j s k d l f ; a j s k d l f ;',
+     'fall glad lads jaks flask skill',
+     'ask a lass; add a flag; sad lad falls',
+   ]
+  },
+  {id:'hr4',phase:'Phase 1: Home Row',name:'Home Row Words',
+   intro:"You know all 8 home row keys! Now let's type real words using just those keys.\n\nRemember: fingers stay on ASDF JKL; and return home after each keypress.",
+   keys:['a','s','d','f','j','k','l',';'],finger:"Left: ASDF · Right: JKL;",
+   xp:65,unlocks:'hr5',minLessons:3,
+   drills:[
+     'a sad lad; a glad lad; all fall flat',
+     'ask dad; add salad; flash a flask',
+     'fall flat; glad lads; fad dash skill',
+     'salad flask dad lass fall ask glad add',
+   ]
+  },
+  {id:'hr5',phase:'Phase 1: Home Row',name:'Home Row Fluency',
+   intro:"Time to get FAST on the home row! These drills mix up all 8 keys. Focus on accuracy — speed will follow!\n\nTip: Say the letter out loud as you press it.",
+   keys:['a','s','d','f','j','k','l',';'],finger:"Left: ASDF · Right: JKL;",
+   xp:70,unlocks:'gh1',minLessons:4,
+   drills:[
+     'flask salad; glad dad falls; ask a lad',
+     'skill falls; add a flag; jaks fads lass',
+     'all lads fall; a sad flask; glad skills',
+     'asks dads; falls salads; glad flasks; skill lads',
+   ]
+  },
+
+  // ---- PHASE 2: G AND H ----
+  {id:'gh1',phase:'Phase 2: G and H',name:'The G Key',
+   intro:"You're doing amazing! Time to stretch your INDEX fingers.\n\nThe G key is pressed by your LEFT index finger — the same finger on F, but you stretch it one key to the RIGHT.\n\nPractice: put your finger on F, then stretch to G. After pressing G, return to F!",
+   keys:['g'],finger:"LEFT index finger stretches right from F to G",
+   xp:60,unlocks:'gh2',minLessons:5,
+   drills:[
+     'ggg fff ggg fff ggg fff ggg fff',
+     'fgf fgf fgf fgf fgf fgf fgf',
+     'gag sag lag gas flag glad glass',
+     'glad gag gas flag glass slag sad fag',
+   ]
+  },
+  {id:'gh2',phase:'Phase 2: G and H',name:'The H Key',
+   intro:"Now for H! The H key is pressed by your RIGHT index finger — the same finger on J, but you stretch it one key to the LEFT.\n\nPractice: put your finger on J, then stretch to H. After pressing H, return to J!",
+   keys:['h'],finger:"RIGHT index finger stretches left from J to H",
+   xp:60,unlocks:'gh3',minLessons:6,
+   drills:[
+     'hhh jjj hhh jjj hhh jjj hhh jjj',
+     'jhj jhj jhj jhj jhj jhj jhj',
+     'has had hall hash dash shall flash hash',
+     'hall flash dash hash has hall shall hash',
+   ]
+  },
+  {id:'gh3',phase:'Phase 2: G and H',name:'G and H Together',
+   intro:"Excellent! Now combine G and H with your home row.\n\nG = left index stretch right\nH = right index stretch left\n\nBoth fingers return HOME after each stretch!",
+   keys:['g','h'],finger:"G = left index stretch · H = right index stretch",
+   xp:70,unlocks:'top1',minLessons:7,
+   drills:[
+     'gh gh gh hg hg ghg hgh ghg hgh',
+     'glad had; flash hall; gash slag hash',
+     'a glad lad had a glass flask; gas hash',
+     'shall flash glad halls; hash gash slag glass',
+   ]
+  },
+
+  // ---- PHASE 3: TOP ROW LEFT ----
+  {id:'top1',phase:'Phase 3: Top Row',name:'Q, W, E — Left Pinky, Ring, Middle',
+   intro:"Now we move UP to the top row! These keys are directly above your home row.\n\n• Q — Left PINKY (above A)\n• W — Left RING finger (above S)\n• E — Left MIDDLE finger (above D)\n\nReach up, press, then return to home!",
+   keys:['q','w','e'],finger:"Q=left pinky, W=left ring, E=left middle (reach up!)",
+   xp:65,unlocks:'top2',minLessons:8,
+   drills:[
+     'qqq www eee qqq www eee qqq www eee',
+     'qwe qwe qwe qwe aqe sqw dew qwe',
+     'ewe sew dew few week seek geek weed seed',
+     'a ewe sees weeds; seek a dewdrop; geeks sew',
+   ]
+  },
+  {id:'top2',phase:'Phase 3: Top Row',name:'R and T — Left Index',
+   intro:"R and T are pressed by your LEFT INDEX finger — the same finger that presses F and G!\n\n• R — directly above D (stretch up-right)\n• T — directly above G (stretch up-far-right)\n\nReturn to F after each press!",
+   keys:['r','t'],finger:"LEFT index finger: F home, R and T above",
+   xp:65,unlocks:'top3',minLessons:9,
+   drills:[
+     'rrr ttt rrr ttt rrr ttt rtr trt',
+     'red tree tread star rest trade dart',
+     'start a great trek; trek to the stars',
+     'a great red tree; rest after a hard trek',
+   ]
+  },
+  {id:'top3',phase:'Phase 3: Top Row',name:'Y and U — Right Index',
+   intro:"Y and U are pressed by your RIGHT INDEX finger.\n\n• Y — above H (stretch up-left)\n• U — above J (directly above)\n\nReturn to J after each press!",
+   keys:['y','u'],finger:"RIGHT index finger: J home, Y and U above",
+   xp:65,unlocks:'top4',minLessons:10,
+   drills:[
+     'yyy uuu yyy uuu yuy uyu yuy uyu',
+     'yule ugly ugly sure jury duty July study',
+     'study hard; truly useful; July duty',
+     'you rule; truly ugly jury; study July',
+   ]
+  },
+  {id:'top4',phase:'Phase 3: Top Row',name:'I, O, P — Right Middle, Ring, Pinky',
+   intro:"The last three top row keys!\n\n• I — Right MIDDLE finger (above K)\n• O — Right RING finger (above L)\n• P — Right PINKY (above ;)\n\nStretch up and return to JKL; home!",
+   keys:['i','o','p'],finger:"I=right middle, O=right ring, P=right pinky (reach up!)",
+   xp:65,unlocks:'top5',minLessons:11,
+   drills:[
+     'iii ooo ppp iii ooo ppp ioi opo pip',
+     'oil flip drip soil trip strip pilot',
+     'drip oil; a pilot flips; tip the strip',
+     'a soil trip; strip of oil; pilot drips oil',
+   ]
+  },
+  {id:'top5',phase:'Phase 3: Top Row',name:'Full Top Row Practice',
+   intro:"You know the WHOLE top row! QWERTYUIOP!\n\nLet's practice putting it all together with words and short sentences.",
+   keys:['q','w','e','r','t','y','u','i','o','p'],finger:"Full top row — all fingers reach up from home",
+   xp:75,unlocks:'bot1',minLessons:12,
+   drills:[
+     'the quick red fox loped out quietly',
+     'write your report; type it up properly',
+     'your story is quite great; keep writing',
+     'Pikachu uses a super quick thunder drop',
+   ]
+  },
+
+  // ---- PHASE 4: BOTTOM ROW ----
+  {id:'bot1',phase:'Phase 4: Bottom Row',name:'Z, X, C — Left Pinky, Ring, Middle',
+   intro:"Time to go DOWN to the bottom row!\n\n• Z — Left PINKY (below A)\n• X — Left RING finger (below S)\n• C — Left MIDDLE finger (below D)\n\nStretch DOWN and return home!",
+   keys:['z','x','c'],finger:"Z=left pinky, X=left ring, C=left middle (reach down!)",
+   xp:65,unlocks:'bot2',minLessons:13,
+   drills:[
+     'zzz xxx ccc zzz xxx ccc zxc zxc zxc',
+     'zoo fox cat zap exact cool cross',
+     'a cool cat; zap a fox; exact score',
+     'cross exact zoo; zap cool cats; exact',
+   ]
+  },
+  {id:'bot2',phase:'Phase 4: Bottom Row',name:'V and B — Left Index',
+   intro:"V and B are both pressed by your LEFT INDEX finger.\n\n• V — below F (stretch down)\n• B — below G (stretch down-right)\n\nReturn to F after each press!",
+   keys:['v','b'],finger:"LEFT index finger: V below F, B below G",
+   xp:65,unlocks:'bot3',minLessons:14,
+   drills:[
+     'vvv bbb vvv bbb vbv bvb vbv bvb',
+     'verb brave vibrant above drive verb brave',
+     'above the brave cliff; drive over every bridge',
+     'brave verbs vibrate above; drive before dark',
+   ]
+  },
+  {id:'bot3',phase:'Phase 4: Bottom Row',name:'N and M — Right Index',
+   intro:"N and M are pressed by your RIGHT INDEX finger.\n\n• N — below J (directly below)\n• M — below J, a bit right\n\nReturn to J after each press!",
+   keys:['n','m'],finger:"RIGHT index finger: N below J, M one right of N",
+   xp:65,unlocks:'bot4',minLessons:15,
+   drills:[
+     'nnn mmm nnn mmm nmn mnm nmn mnm',
+     'name main noun mine final animal moon',
+     'nine men mine; name the animal; final moon',
+     'animal moon name; nine final men mine name',
+   ]
+  },
+  {id:'bot4',phase:'Phase 4: Bottom Row',name:'Comma, Period — Right Middle, Ring',
+   intro:"Two important punctuation keys on the bottom row!\n\n• , (comma) — Right MIDDLE finger (below K)\n• . (period) — Right RING finger (below L)\n\nThese finish sentences and lists!",
+   keys:[',','.'],finger:", = right middle (below K) · . = right ring (below L)",
+   xp:60,unlocks:'bot5',minLessons:16,
+   drills:[
+     'k,k l.l k,k l.l k,k l.l k,k l.l',
+     'run, jump, swim. skip, hop, leap.',
+     'Koda runs fast. Khloe jumps high, too.',
+     'hike, swim, climb. scout, serve, grow.',
+   ]
+  },
+  {id:'bot5',phase:'Phase 4: Bottom Row',name:'Full Bottom Row',
+   intro:"You know the WHOLE bottom row! ZXCVBNM,.\n\nLet's combine it with everything you've learned!",
+   keys:['z','x','c','v','b','n','m',',','.'],finger:"Full bottom row — all fingers reach down from home",
+   xp:75,unlocks:'cap1',minLessons:17,
+   drills:[
+     'mix brave foxes; zoom into black caves.',
+     'combine your knowledge; maximize every move.',
+     'brave scouts hike; combine skills. maximize fun.',
+     'Khloe zooms by. Koda barks, then runs back.',
+   ]
+  },
+
+  // ---- PHASE 5: CAPITALS ----
+  {id:'cap1',phase:'Phase 5: Capitals & Shift',name:'Left Shift Key',
+   intro:"Time to learn CAPITAL letters! To type a capital, you hold SHIFT while pressing the letter.\n\nThe LEFT SHIFT key is pressed by your LEFT PINKY. Use it for capitals on the RIGHT side of the keyboard:\nY U I O P H J K L : N M < > ?\n\nHold Shift, press the letter, release Shift!",
+   keys:['j','k','l','h','n','m'],finger:"Left pinky holds ⇧L for RIGHT-side capitals",
+   xp:70,unlocks:'cap2',minLessons:18,
+   drills:[
+     'Jkl; Jkl; Jump Kind Loud Hill Neon Mom',
+     'June July November Monday Night Hill',
+     'Khloe and Koda jump high. Nice moves!',
+     'Hello! My name is not Mark. It is Gene!',
+   ]
+  },
+  {id:'cap2',phase:'Phase 5: Capitals & Shift',name:'Right Shift Key',
+   intro:"The RIGHT SHIFT key is pressed by your RIGHT PINKY. Use it for capitals on the LEFT side of the keyboard:\nQ W E R T A S D F G Z X C V B\n\nRight pinky holds the right shift while left fingers type!",
+   keys:['a','s','d','f','g','q','w','e','r','t'],finger:"Right pinky holds ⇧R for LEFT-side capitals",
+   xp:70,unlocks:'cap3',minLessons:19,
+   drills:[
+     'Asdf Qwer Asdf Qwer Able Safe Dear Fast',
+     'August September December Wednesday Friday',
+     'Steve crafts in his World. Alex digs caves.',
+     'Great work, Gene! Every Scout earns their badge.',
+   ]
+  },
+  {id:'cap3',phase:'Phase 5: Capitals & Shift',name:'Full Sentences with Capitals',
+   intro:"Now combine both shifts to write proper sentences!\n\nRemember:\n• Always capitalize the first word of a sentence\n• Always capitalize names (Gene, Khloe, Koda)\n• Use the OPPOSITE shift from the letter you're typing",
+   keys:['shift'],finger:"Use opposite shift: Left shift → right letters, Right shift → left letters",
+   xp:75,unlocks:'num1',minLessons:20,
+   drills:[
+     'Gene has two dogs named Khloe and Koda.',
+     'My Scout troop hiked to the river on Friday.',
+     'Steve mined diamonds. Alex built the farm.',
+     'Waheguru is kind. Sat Sri Akal, said Gene.',
+   ]
+  },
+
+  // ---- PHASE 6: NUMBERS ----
+  {id:'num1',phase:'Phase 6: Numbers',name:'Numbers 1, 2, 3, 4, 5',
+   intro:"Numbers live on the very top row! Each one is above a finger that you already know.\n\n• 1 — left pinky (above Q)\n• 2 — left ring (above W)\n• 3 — left middle (above E)\n• 4 — left index (above R)\n• 5 — left index stretch (above T)",
+   keys:['1','2','3','4','5'],finger:"Numbers 1-5: left hand stretches up to top number row",
+   xp:65,unlocks:'num2',minLessons:21,
+   drills:[
+     '111 222 333 444 555 12345 54321',
+     '123 321 345 543 125 521 234 432',
+     'level 1 to 5; catch 3 fish; plant 4 seeds',
+     'add 1 and 2 and 3; multiply 4 by 5 equals 20',
+   ]
+  },
+  {id:'num2',phase:'Phase 6: Numbers',name:'Numbers 6, 7, 8, 9, 0',
+   intro:"Numbers 6-0 are pressed by the RIGHT hand.\n\n• 6 — right index stretch (above Y)\n• 7 — right index (above U)\n• 8 — right middle (above I)\n• 9 — right ring (above O)\n• 0 — right pinky (above P)",
+   keys:['6','7','8','9','0'],finger:"Numbers 6-0: right hand stretches up to top number row",
+   xp:65,unlocks:'num3',minLessons:22,
+   drills:[
+     '666 777 888 999 000 67890 09876',
+     '678 876 890 098 670 076 789 987',
+     '6 and 7 make 13; 8 times 9 is 72; 10 minus 6',
+     'level 6 to 10; catch 7 fish; plant 8 trees',
+   ]
+  },
+  {id:'num3',phase:'Phase 6: Numbers',name:'All Numbers Together',
+   intro:"Let's practice ALL ten digits together! Mix of both hands.",
+   keys:['1','2','3','4','5','6','7','8','9','0'],finger:"Both hands stretch to number row",
+   xp:70,unlocks:'punc1',minLessons:23,
+   drills:[
+     '1234567890 0987654321 1357924680',
+     'add 25 and 37; subtract 14 from 50',
+     'Scout troop 142 hiked 8 miles in 3 hours.',
+     'Gene scored 95 out of 100 on the typing test!',
+   ]
+  },
+
+  // ---- PHASE 7: PUNCTUATION ----
+  {id:'punc1',phase:'Phase 7: Punctuation',name:'Period, Comma, Apostrophe',
+   intro:"You already know period and comma! Let's add the apostrophe:\n\n• . (period) — right ring finger, bottom row\n• , (comma) — right middle finger, bottom row\n• ' (apostrophe) — right PINKY, to the right of L\n\nThese three appear in almost every sentence!",
+   keys:['.', ',', "'"],finger:". = right ring · , = right middle · ' = right pinky (right of L)",
+   xp:65,unlocks:'punc2',minLessons:24,
+   drills:[
+     "run, jump, swim. I don't stop, it's fun!",
+     "Gene's dog, Khloe, runs fast. Koda doesn't rest.",
+     "It's a scout's duty. Don't give up, it's great!",
+     "I can't stop, won't stop. Gene's skills are rising.",
+   ]
+  },
+  {id:'punc2',phase:'Phase 7: Punctuation',name:'Question Mark and Exclamation',
+   intro:"Two exciting punctuation marks!\n\n• ? (question mark) — SHIFT + / (right pinky stretch)\n• ! (exclamation) — SHIFT + 1 (left pinky stretch)\n\nBoth need the SHIFT key!",
+   keys:['?','!'],finger:"? = shift + / (right pinky) · ! = shift + 1 (left pinky)",
+   xp:65,unlocks:'speed1',minLessons:25,
+   drills:[
+     'Are you ready? Yes! Let\'s go!',
+     'Can Gene type? Yes! He\'s amazing!',
+     'Is that a creeper? Run! Mine diamonds!',
+     'Did Koda eat? Yes! Did Khloe run? Yes!',
+   ]
+  },
+
+  // ---- PHASE 8: SPEED AND FLOW ----
+  {id:'speed1',phase:'Phase 8: Speed and Flow',name:'Short Sentences — Build Rhythm',
+   intro:"You know the whole keyboard! Now it's time to build SPEED and FLOW.\n\nThe secret to typing fast is RHYTHM — like music. Each key gets the same beat. Don't rush letters and slow down for spaces.",
+   keys:[],finger:"All keys — focus on smooth even rhythm",
+   xp:80,unlocks:'speed2',minLessons:26,
+   drills:[
+     'the dog ran fast. the cat sat still.',
+     'Gene types well. His dogs run free.',
+     'a scout is brave, kind, and always ready.',
+     'craft your skills every single day and grow.',
+   ]
+  },
+  {id:'speed2',phase:'Phase 8: Speed and Flow',name:'Longer Sentences',
+   intro:"Pushing to longer sentences now! Keep that rhythm going and trust your fingers — they know where the keys are.",
+   keys:[],finger:"All keys — aim for smooth flow on longer text",
+   xp:85,unlocks:'speed3',minLessons:27,
+   drills:[
+     'Khloe and Koda race through the yard while Gene watches from the porch.',
+     'Steve digs deep into the mountain, searching for diamonds and gold.',
+     'In Scouting, a Scout is trustworthy, loyal, helpful, friendly, and kind.',
+     'Waheguru teaches us to serve others and share what we have with love.',
+   ]
+  },
+  {id:'speed3',phase:'Phase 8: Speed and Flow',name:'Pangrams and Challenge Text',
+   intro:"A PANGRAM is a sentence that uses every letter of the alphabet! These are great for training all your fingers.\n\nType these slowly at first, then build up speed.",
+   keys:[],finger:"All keys — every letter of the alphabet in use",
+   xp:90,unlocks:'speed4',minLessons:28,
+   drills:[
+     'the quick brown fox jumps over the lazy dog.',
+     'pack my box with five dozen liquor jugs.',
+     'how vexingly quick daft zebras jump each day.',
+     'sphinx of black quartz, judge my vow today.',
+   ]
+  },
+  {id:'speed4',phase:'Phase 8: Speed and Flow',name:'Master Challenge',
+   intro:"This is the FINAL lesson — the master challenge! Long paragraphs, mixed punctuation, numbers, and everything you've learned.\n\nYou've come so far, Gene. Let's show what you're made of!",
+   keys:[],finger:"Everything — this is your graduation test!",
+   xp:100,unlocks:null,minLessons:29,
+   drills:[
+     "Gene hiked 8 miles with Scout Troop 142 last Saturday. He didn't stop once!",
+     "Khloe barked 3 times. Koda barked 5 times. Together, that's 8 barks of pure joy!",
+     "Steve built a diamond fortress at level 64. It took him 2 hours and 47 minutes.",
+     "Waheguru's teachings remind us: serve others, share food, and never stop learning.",
+   ]
+  },
+];
+
+// ============================================================
+//  QUESTS
+// ============================================================
+const QUESTS=[
+  // DAILY
+  {id:'daily_hr',name:'HOME ROW WARM-UP',icon:'⌨️',desc:'Start every day with your anchor keys',xp:35,daily:true,minLessons:0,
+   passages:['asdf jkl; asdf jkl; fall glad lads ask flask skill dad sad lad fads']},
+  {id:'daily_gh',name:'G AND H DRILL',icon:'🎯',desc:'Daily stretch for your index fingers',xp:40,daily:true,minLessons:7,
+   passages:['glad has hall flash gash hash glad had gas hall flash hash slag glass']},
+  {id:'daily_full',name:'FULL ROW DRILL',icon:'🚀',desc:'Everything you know in one run',xp:50,daily:true,minLessons:18,
+   passages:['the quick fox jumps; Gene types and learns every day. Great work!']},
+
+  // MINECRAFT
+  {id:'mc1',name:"DIRT HUT BUILDER",icon:'🟫',desc:'Type like you are placing the first blocks',xp:45,daily:false,minLessons:4,diff:'★☆☆',
+   passages:['dig a flat area; place dirt walls; add a roof; seal the door; sleep safe from mobs']},
+  {id:'mc2',name:"CREEPER ALERT!",icon:'💥',desc:'Sprint! Type fast to escape!',xp:50,daily:false,minLessons:8,diff:'★★☆',
+   passages:['a creeper hissed behind Steve; he ran fast to the left and hid in a dark cave']},
+  {id:'mc3',name:"DIAMOND QUEST",icon:'💎',desc:'Mine deep for glory and sparkle',xp:55,daily:false,minLessons:12,diff:'★★☆',
+   passages:['Steve digs to level 12; the pickaxe strikes; three diamonds gleam in the dark cave wall']},
+  {id:'mc4',name:"NETHER PORTAL",icon:'🟪',desc:'Build the portal to the Nether',xp:60,daily:false,minLessons:17,diff:'★★★',
+   passages:['collect 10 obsidian blocks; build a frame 4 wide and 5 tall; strike flint and steel; enter the portal']},
+  {id:'mc5',name:"ENDER DRAGON",icon:'🐉',desc:'The final boss awaits your typing skills',xp:80,daily:false,minLessons:22,diff:'★★★',
+   passages:["Steve flew to The End; 12 End Crystals must be destroyed; he shot each one with his bow; the dragon fell; Gene wins!"]},
+
+  // POKEMON
+  {id:'pk1',name:"STARTER CHOICE",icon:'🌿',desc:'Bulbasaur, Charmander, or Squirtle?',xp:45,daily:false,minLessons:5,diff:'★☆☆',
+   passages:['I choose you, Bulbasaur! Use vine whip! Charmander, use ember! Squirtle, use water gun!']},
+  {id:'pk2',name:"GYM BATTLE",icon:'🏅',desc:'Win the badge from Brock and Misty',xp:55,daily:false,minLessons:10,diff:'★★☆',
+   passages:['Brock sends out Onix; Pikachu uses quick attack; the rock crumbles; Gene earns the Boulder Badge!']},
+  {id:'pk3',name:"POKE BALL THROW",icon:'⚾',desc:'Catch that rare Pokemon!',xp:55,daily:false,minLessons:14,diff:'★★☆',
+   passages:['a shiny Gengar appeared; Gene threw an Ultra Ball; it rocked once, twice, three times; caught it!']},
+  {id:'pk4',name:"ELITE FOUR",icon:'🏆',desc:'Four champions stand between you and glory',xp:70,daily:false,minLessons:20,diff:'★★★',
+   passages:['Lorelei uses ice types; Bruno uses fighting; Agatha uses ghosts; Lance uses dragons; Gene beats them all!']},
+  {id:'pk5',name:"LEGENDARY HUNT",icon:'✨',desc:'Mewtwo is near the top of Cerulean Cave',xp:80,daily:false,minLessons:25,diff:'★★★',
+   passages:['deep in Cerulean Cave, Mewtwo waits; Gene has one Master Ball; he steps forward and throws it; Mewtwo is caught!']},
+
+  // BOY SCOUTS
+  {id:'sc1',name:"SCOUT OATH",icon:'🤝',desc:'Type the Scout Oath from memory',xp:50,daily:false,minLessons:3,diff:'★☆☆',
+   passages:['on my honor I will do my best to do my duty to God and my country and to obey the Scout law']},
+  {id:'sc2',name:"SCOUT LAW",icon:'📜',desc:'12 points of the Scout Law',xp:55,daily:false,minLessons:7,diff:'★★☆',
+   passages:['a Scout is trustworthy, loyal, helpful, friendly, courteous, kind, obedient, cheerful, thrifty, brave, clean, and reverent']},
+  {id:'sc3',name:"CAMPFIRE NIGHT",icon:'🔥',desc:'A night under the stars with your troop',xp:55,daily:false,minLessons:11,diff:'★★☆',
+   passages:["Gene's troop built a fire using the teepee method; they roasted marshmallows and told stories under the stars"]},
+  {id:'sc4',name:"MERIT BADGE",icon:'🎖️',desc:'Earn your typing merit badge today!',xp:65,daily:false,minLessons:16,diff:'★★★',
+   passages:['Gene learned first aid, fire safety, and map reading; he earned three merit badges and sewed them on his sash']},
+  {id:'sc5',name:"EAGLE SCOUT",icon:'🦅',desc:'The highest honor in Scouting',xp:90,daily:false,minLessons:26,diff:'★★★',
+   passages:["Gene completed his Eagle Scout project: he organized a food drive for 200 families and raised 500 cans of food!"]},
+
+  // KHLOE AND KODA
+  {id:'kk1',name:"MORNING WALK",icon:'🐕',desc:'Khloe and Koda need their walk!',xp:45,daily:false,minLessons:2,diff:'★☆☆',
+   passages:['Khloe leads the way; Koda sniffs every flower; they trot along the trail with their tails wagging fast']},
+  {id:'kk2',name:"FETCH TIME",icon:'🎾',desc:'Who fetches faster, Khloe or Koda?',xp:50,daily:false,minLessons:6,diff:'★★☆',
+   passages:["Gene throws the ball far across the yard; Khloe sprints first but Koda zooms past her and grabs it first!"]},
+  {id:'kk3',name:"BATH DAY",icon:'🛁',desc:'The dogs are muddy after the trail...',xp:55,daily:false,minLessons:13,diff:'★★☆',
+   passages:["after hiking through mud, Khloe and Koda needed baths; they shook water everywhere and Gene got soaked too!"]},
+  {id:'kk4',name:"TRICK MASTERS",icon:'🌟',desc:'Teaching Khloe and Koda new tricks',xp:60,daily:false,minLessons:19,diff:'★★★',
+   passages:['sit, stay, shake, roll over, speak; Koda mastered all five tricks in one week; Khloe learned six tricks!']},
+
+  // SIKHISM
+  {id:'sk1',name:"SAT SRI AKAL",icon:'🙏',desc:'A greeting of truth and light',xp:50,daily:false,minLessons:8,diff:'★☆☆',
+   passages:['Sat Sri Akal means God is truth; we greet each other with this blessing every morning and evening']},
+  {id:'sk2',name:"SEVA — SELFLESS SERVICE",icon:'🤲',desc:'Serving others without reward',xp:55,daily:false,minLessons:12,diff:'★★☆',
+   passages:['seva is the act of helping others without asking for anything back; Gene volunteers at the langar every Sunday']},
+  {id:'sk3',name:"THE LANGAR",icon:'🍛',desc:'The community kitchen that feeds all',xp:55,daily:false,minLessons:16,diff:'★★☆',
+   passages:['the langar is a free kitchen in the Gurdwara; everyone is welcome; rich and poor sit together and share food']},
+  {id:'sk4',name:"WAHEGURU",icon:'☀️',desc:'The name of the Almighty in Sikhism',xp:65,daily:false,minLessons:22,diff:'★★★',
+   passages:['Waheguru means Wonderful Lord; Sikhs recite this name to stay connected to truth, kindness, and light each day']},
+  {id:'sk5',name:"THE 5 KS",icon:'🗡️',desc:'The five articles of Sikh faith',xp:70,daily:false,minLessons:26,diff:'★★★',
+   passages:['the five Ks of Sikhism are Kesh, Kara, Kanga, Kachera, and Kirpan; each one holds a deep and sacred meaning']},
+
+  // SPEED CHALLENGES
+  {id:'spd1',name:"PANGRAM SPRINT",icon:'💨',desc:'Every letter of the alphabet — GO!',xp:60,daily:false,minLessons:17,diff:'★★☆',
+   passages:['the quick brown fox jumps over the lazy dog; pack my box with five dozen jugs today']},
+  {id:'spd2',name:"NUMBER BLAST",icon:'🔢',desc:'Digits mixed into real sentences',xp:65,daily:false,minLessons:23,diff:'★★★',
+   passages:['Gene typed 45 words per minute on June 7th; his accuracy was 97 percent after 120 practice sessions!']},
+  {id:'spd3',name:"MASTER RUN",icon:'👑',desc:'The ultimate speed challenge',xp:100,daily:false,minLessons:29,diff:'★★★',
+   passages:["Gene's journey: from A-S-D-F at level 1 to 45 WPM at level 10. Khloe barked 3 times. Waheguru smiles. Sat Sri Akal!"]},
+];
+
+// ============================================================
+//  STATE
+// ============================================================
+// ============================================================
+//  STATE
+// ============================================================
+let ST={
+  playerName:'Gene',xp:0,level:1,
+  bestWpm:0,lastAcc:null,streak:0,
+  lessonsComplete:[],completedToday:[],lastPlayDate:'',
+  currentActivity:null,
+};
+function loadST(){try{const s=localStorage.getItem('tq4');if(s)Object.assign(ST,JSON.parse(s));}catch(e){}checkDay();}
+function saveST(){try{localStorage.setItem('tq4',JSON.stringify(ST));}catch(e){};}
+function checkDay(){
+  const today=new Date().toDateString();
+  if(ST.lastPlayDate&&ST.lastPlayDate!==today){
+    const yest=new Date(Date.now()-86400000).toDateString();
+    if(ST.lastPlayDate===yest&&ST.completedToday.length>0)ST.streak=(ST.streak||0)+1;
+    else if(ST.lastPlayDate!==yest)ST.streak=0;
+    ST.completedToday=[];
+  }
+  ST.lastPlayDate=today;saveST();
+}
+function lessonsDone(){return ST.lessonsComplete.length;}
+function lessonDone(id){return ST.lessonsComplete.includes(id);}
+
+// ============================================================
+//  XP + LEVELING
+// ============================================================
+function getLd(l){return LEVELS[Math.min(l-1,9)];}
+function getNextLd(l){return LEVELS[Math.min(l,9)];}
+function xpForLevel(l){let t=0;for(let i=1;i<l;i++)t+=LEVELS[i-1].xpNeeded;return t;}
+function addXP(amount){
+  const old=ST.level;ST.xp+=amount;
+  while(ST.level<10){if(ST.xp-xpForLevel(ST.level)>=getLd(ST.level).xpNeeded)ST.level++;else break;}
+  saveST();return ST.level>old?ST.level:null;
+}
+
+// ============================================================
+//  PIXEL CHARACTER
+// ============================================================
+function drawCharacter(level){
+  // Map level to image file
+  let img;
+  if(level>=10)       img='LVL_10.png';
+  else if(level>=7)   img='LVL_7-9.png';
+  else if(level>=4)   img='LVL_4-6.png';
+  else if(level>=2)   img='LVL_2-3.png';
+  else                img='LVL_1.png';
+
+  const el=document.getElementById('char-img');
+  if(el){
+    // Fade out, swap, fade in
+    el.style.transition='opacity 0.3s';
+    el.style.opacity='0';
+    setTimeout(()=>{
+      el.src=img;
+      el.style.opacity='1';
+    },300);
+  }
+  document.getElementById('char-lvl-badge').textContent='LVL '+level;
+  const ld=getLd(level);
+  const words=ld.title.split(' ');
+  const mid=Math.ceil(words.length/2);
+  document.getElementById('char-title-txt').textContent=words.slice(0,mid).join(' ')+' '+words.slice(mid).join(' ');
+}
+// ============================================================
+//  SIDE MAP (lesson road)
+// ============================================================
+function drawSideMap(){
+  const svg=document.getElementById('map-mini-svg');
+  const done=lessonsDone();
+  const total=LESSONS.length;
+  const W=100, H=460;
+  const phaseColors=['#e06010','#3a8a3a','#4488cc','#996622','#8844cc','#cc4422','#2266aa','#f5c542'];
+  const phaseStarts=[0,5,8,13,18,21,24,26];
+  const phaseNames=['Home Row','G & H','Top Row','Bottom','Capitals','Numbers','Punct.','Speed'];
+  const phaseIcons=['⌨','GH','↑','↓','⇧','123','!?','🚀'];
+  const margin=28;
+  const step=(H-margin*2-30)/(total-1);
+  let pts=[];
+  for(let i=0;i<total;i++){
+    const y=margin+i*step;
+    const t=i/total;
+    const x=50+Math.round(32*Math.sin(t*Math.PI*3.5));
+    pts.push({x,y,i});
+  }
+  let s='';
+  s+=`<defs>
+    <linearGradient id="roadbg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a1628"/>
+      <stop offset="40%" stop-color="#0f2a18"/>
+      <stop offset="100%" stop-color="#1a1a0a"/>
+    </linearGradient>
+    <linearGradient id="roadfill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a3a4c"/>
+      <stop offset="100%" stop-color="#1a2a3c"/>
+    </linearGradient>
+  </defs>`;
+  s+=`<rect width="${W}" height="${H}" fill="url(#roadbg)" rx="8"/>`;
+  const starPos=[[8,6],[22,12],[88,8],[75,18],[45,4],[60,14],[15,20],[90,22],[35,16]];
+  starPos.forEach(([sx,sy])=>{
+    s+=`<rect x="${sx-1}" y="${sy-1}" width="2" height="2" fill="#fff" opacity="0.35"/>`;
+  });
+  s+=`<circle cx="82" cy="18" r="8" fill="#1a2a3c"/>`;
+  s+=`<circle cx="86" cy="15" r="7" fill="#e8e0c0" opacity="0.9"/>`;
+  const treePos=[[10,200,'#2d5a1b'],[85,180,'#2d5a1b'],[8,320,'#1a3a1a'],[90,300,'#2d5a1b'],[12,420,'#3a3a10'],[88,410,'#2a4a0a']];
+  treePos.forEach(([tx,ty,tc])=>{
+    s+=`<rect x="${tx-2}" y="${ty+8}" width="4" height="8" fill="#5a3a1a"/>`;
+    s+=`<rect x="${tx-6}" y="${ty}" width="12" height="6" fill="${tc}"/>`;
+    s+=`<rect x="${tx-4}" y="${ty-4}" width="8" height="5" fill="${tc}"/>`;
+    s+=`<rect x="${tx-2}" y="${ty-7}" width="4" height="4" fill="${tc}"/>`;
+  });
+  let pathD='M'+pts[0].x+','+pts[0].y;
+  for(let i=1;i<pts.length;i++){
+    const p=pts[i],pp=pts[i-1];
+    const cx=(pp.x+p.x)/2;
+    pathD+=` Q${cx},${(pp.y+p.y)/2} ${p.x},${p.y}`;
+  }
+  s+=`<path d="${pathD}" fill="none" stroke="#0a0a14" stroke-width="11" stroke-linecap="round" opacity="0.5"/>`;
+  s+=`<path d="${pathD}" fill="none" stroke="url(#roadfill)" stroke-width="9" stroke-linecap="round"/>`;
+  s+=`<path d="${pathD}" fill="none" stroke="#3a5a3c" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="5,7" opacity="0.7"/>`;
+  phaseStarts.forEach((start,pi)=>{
+    const endIdx=pi+1<phaseStarts.length?phaseStarts[pi+1]:total;
+    if(start>=pts.length||endIdx>pts.length)return;
+    const ys=pts[start].y,ye=pts[Math.min(endIdx-1,pts.length-1)].y;
+    const pc=phaseColors[pi];
+    s+=`<rect x="0" y="${ys-4}" width="${W}" height="${ye-ys+8}" fill="${pc}" opacity="0.04" rx="4"/>`;
+  });
+  pts.forEach(({x,y,i})=>{
+    const isDone=i<done,isCur=i===done,isLocked=i>done;
+    let phaseIdx=0;
+    for(let pi=phaseStarts.length-1;pi>=0;pi--){if(i>=phaseStarts[pi]){phaseIdx=pi;break;}}
+    const pc=phaseColors[phaseIdx];
+    const isMile=phaseStarts.includes(i);
+    const r=isCur?7:isMile?6:4;
+    if(isCur){
+      s+=`<circle cx="${x}" cy="${y}" r="${r+6}" fill="${pc}" opacity="0.15"/>`;
+      s+=`<circle cx="${x}" cy="${y}" r="${r+3}" fill="${pc}" opacity="0.25"/>`;
+    }
+    const fill=isDone?pc:isCur?'#f5c542':isLocked?'#1a2a3c':'#2a3a5c';
+    const stroke=isDone?pc:isCur?'#f5c542':'#2a3a5c';
+    s+=`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${isCur?2:1.5}"/>`;
+    if(isDone){s+=`<text x="${x}" y="${y+3}" font-size="6" text-anchor="middle" fill="#fff" font-weight="bold">✓</text>`;}
+    else if(isCur){s+=`<text x="${x}" y="${y+3}" font-size="8" text-anchor="middle" fill="#1a1a2e" font-weight="bold">▶</text>`;}
+    else if(isMile&&!isLocked){s+=`<text x="${x}" y="${y+3}" font-size="5" text-anchor="middle" fill="#4a5a7c">${phaseIcons[phaseIdx]||'·'}</text>`;}
+    if(isMile){
+      const onLeft=x>50;
+      const lx=onLeft?x-r-3:x+r+3;
+      const anchor=onLeft?'end':'start';
+      const tc=isDone?pc:isCur?'#f5c542':'#3a4a6c';
+      s+=`<text x="${lx}" y="${y+3}" font-size="5.5" text-anchor="${anchor}" fill="${tc}" font-family="monospace" font-weight="bold">${phaseNames[phaseIdx]}</text>`;
+    }
+  });
+  s+=`<rect x="${pts[0].x+8}" y="${pts[0].y-8}" width="18" height="12" fill="#cc2222" rx="2"/>`;
+  s+=`<text x="${pts[0].x+17}" y="${pts[0].y}" font-size="6" text-anchor="middle" fill="#fff" font-weight="bold">GO!</text>`;
+  s+=`<rect x="${pts[0].x}" y="${pts[0].y-4}" width="2" height="16" fill="#888"/>`;
+  if(done>=total){
+    s+=`<rect x="${pts[total-1].x+8}" y="${pts[total-1].y-10}" width="28" height="14" fill="#f5c542" rx="2"/>`;
+    s+=`<text x="${pts[total-1].x+22}" y="${pts[total-1].y}" font-size="6" text-anchor="middle" fill="#1a1a00" font-weight="bold">DONE!</text>`;
+  }
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.setAttribute('width','144');
+  svg.setAttribute('height', String(Math.round(144*(H/W))));
+  svg.innerHTML=s;
+  document.getElementById('map-legend').innerHTML=
+    `<span style="color:#22c55e">●</span> Done<br>`+
+    `<span style="color:#f5c542">●</span> Now<br>`+
+    `<span style="color:#1a2a3c;border:1px solid #2a3a5c;border-radius:50%;display:inline-block;width:8px;height:8px;"></span> Next`;
+}
+
+// ============================================================
+//  QUEST MAP
+// ============================================================
+function drawQuestMap(){
+  const svg=document.getElementById('quest-map-svg');
+  const tooltip=document.getElementById('quest-tooltip');
+  const container=document.getElementById('quest-map-container');
+  const VW=800,VH=561;
+  const DOT_POS={
+    daily_hr: [0.13,0.71], daily_gh:[0.19,0.64], daily_full:[0.24,0.58],
+    mc1:[0.17,0.50], mc2:[0.20,0.42], mc3:[0.25,0.35], mc4:[0.17,0.35], mc5:[0.14,0.43],
+    sc1:[0.36,0.78], sc2:[0.42,0.72], sc3:[0.48,0.78], sc4:[0.37,0.86], sc5:[0.46,0.86],
+    kk1:[0.49,0.47], kk2:[0.55,0.42], kk3:[0.61,0.47], kk4:[0.55,0.54],
+    pk1:[0.68,0.62], pk2:[0.74,0.55], pk3:[0.80,0.62], pk4:[0.71,0.70], pk5:[0.78,0.70],
+    sk1:[0.78,0.30], sk2:[0.84,0.22], sk3:[0.79,0.40], sk4:[0.87,0.32], sk5:[0.86,0.16],
+    spd1:[0.41,0.17], spd2:[0.50,0.11], spd3:[0.57,0.19],
+  };
+  const ZONE_COLORS={
+    daily_hr:'#f5c542',daily_gh:'#f5c542',daily_full:'#f5c542',
+    mc1:'#8b6914',mc2:'#8b6914',mc3:'#8b6914',mc4:'#8b6914',mc5:'#8b6914',
+    sc1:'#2d7a2d',sc2:'#2d7a2d',sc3:'#2d7a2d',sc4:'#2d7a2d',sc5:'#2d7a2d',
+    kk1:'#e07030',kk2:'#e07030',kk3:'#e07030',kk4:'#e07030',
+    pk1:'#cc2244',pk2:'#cc2244',pk3:'#cc2244',pk4:'#cc2244',pk5:'#cc2244',
+    sk1:'#c49a1a',sk2:'#c49a1a',sk3:'#c49a1a',sk4:'#c49a1a',sk5:'#c49a1a',
+    spd1:'#4488ff',spd2:'#4488ff',spd3:'#4488ff',
+  };
+  let s='';
+  s+=`<defs>
+    <filter id="dot-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000" flood-opacity="0.7"/>
+    </filter>
+    <filter id="glow-filter" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>`;
+  s+=`<image href="quest-map.png" x="0" y="0" width="${VW}" height="${VH}" preserveAspectRatio="xMidYMid slice"/>`;
+  s+=`<rect width="${VW}" height="${VH}" fill="#000" opacity="0.08"/>`;
+  QUESTS.forEach(q=>{
+    const pos=DOT_POS[q.id];if(!pos)return;
+    const qx=Math.round(pos[0]*VW),qy=Math.round(pos[1]*VH);
+    const locked=lessonsDone()<q.minLessons;
+    const done=ST.completedToday.includes(q.id);
+    const isDaily=q.daily;
+    const zc=ZONE_COLORS[q.id]||'#4fc3f7';
+    const dotR=isDaily?13:11;
+    if(!locked){s+=`<circle cx="${qx}" cy="${qy}" r="${dotR+9}" fill="${zc}" opacity="0.3" filter="url(#glow-filter)"/>`;}
+    s+=`<circle cx="${qx}" cy="${qy}" r="${dotR+2}" fill="${locked?'#0008':'#000a'}" filter="url(#dot-shadow)"/>`;
+    const fillCol=done?'#22c55e':locked?'#334':isDaily?zc:'#fff';
+    const strokeCol=done?'#16a34a':locked?'#556':zc;
+    s+=`<circle cx="${qx}" cy="${qy}" r="${dotR}" fill="${fillCol}" stroke="${strokeCol}" stroke-width="2" class="quest-dot" data-qid="${q.id}" style="cursor:${locked?'default':'pointer'}"/>`;
+    if(done){s+=`<text x="${qx}" y="${qy+4}" font-size="10" text-anchor="middle" fill="#fff" font-weight="bold" pointer-events="none">✓</text>`;}
+    else if(locked){s+=`<text x="${qx}" y="${qy+4}" font-size="11" text-anchor="middle" fill="#99a" pointer-events="none">🔒</text>`;}
+    else if(isDaily){s+=`<text x="${qx}" y="${qy+4}" font-size="11" text-anchor="middle" fill="#1a1000" font-weight="bold" pointer-events="none">★</text>`;}
+    else{s+=`<text x="${qx}" y="${qy+4}" font-size="11" text-anchor="middle" fill="${zc}" font-weight="bold" pointer-events="none">!</text>`;}
+  });
+  svg.setAttribute('viewBox',`0 0 ${VW} ${VH}`);
+  svg.innerHTML=s;
+  svg.addEventListener('mousemove',function(e){
+    const target=e.target.closest('.quest-dot');
+    if(!target){tooltip.classList.remove('show');return;}
+    const qid=target.dataset.qid;
+    const q=QUESTS.find(x=>x.id===qid);if(!q)return;
+    const locked=lessonsDone()<q.minLessons;
+    const done=ST.completedToday.includes(q.id);
+    const rect=container.getBoundingClientRect();
+    let tx=e.clientX-rect.left+16,ty=e.clientY-rect.top-10;
+    if(tx+230>rect.width)tx=e.clientX-rect.left-240;
+    if(ty+140>rect.height)ty=e.clientY-rect.top-140;
+    tooltip.style.left=tx+'px';tooltip.style.top=ty+'px';
+    const zc=ZONE_COLORS[q.id]||'#4fc3f7';
+    tooltip.innerHTML=`<div class="qt-name" style="color:${zc}">${q.icon} ${q.name}</div>
+      <div class="qt-desc">${q.desc}</div>
+      <div class="qt-xp">⚡ +${q.xp} XP reward</div>
+      ${q.diff?`<div class="qt-diff">Difficulty: ${q.diff}</div>`:''}
+      ${done?'<div style="color:#22c55e;font-size:12px;margin-top:5px">✓ Completed today!</div>':''}
+      ${locked?`<div class="qt-lock">🔒 Complete ${q.minLessons} lessons to unlock</div>`:
+               '<div style="color:#a8d86e;font-size:12px;margin-top:5px">Click to begin!</div>'}`;
+    tooltip.classList.add('show');
+  });
+  svg.addEventListener('mouseleave',()=>tooltip.classList.remove('show'));
+  svg.addEventListener('click',function(e){
+    const target=e.target.closest('.quest-dot');if(!target)return;
+    const qid=target.dataset.qid;
+    const q=QUESTS.find(x=>x.id===qid);if(!q)return;
+    if(lessonsDone()<q.minLessons){showToast('Complete more lessons to unlock this quest!');return;}
+    tooltip.classList.remove('show');openQuest(qid);
+  });
+}
+
+// ============================================================
+//  UI UPDATES
+// ============================================================
+function updateHeader(){
+  const ld=getLd(ST.level);
+  document.getElementById('hdr-player').textContent=ST.playerName;
+  document.getElementById('hdr-rank').textContent='LVL '+ST.level+' · '+ld.title;
+}
+function updateDash(){
+  const ld=getLd(ST.level);const nld=getNextLd(ST.level);
+  document.getElementById('badge-lvl').textContent=ST.level;
+  document.getElementById('rank-title').textContent=ld.icon+' '+ld.title;
+  document.getElementById('rank-desc').textContent=ld.desc;
+  document.getElementById('rank-target').textContent='🎯 Goal: '+ld.target;
+  const xpIn=ST.xp-xpForLevel(ST.level);const xpNeed=ld.xpNeeded;
+  const pct=Math.min(100,Math.round((xpIn/xpNeed)*100));
+  document.getElementById('xp-cur').textContent=xpIn;
+  document.getElementById('xp-max').textContent=xpNeed;
+  document.getElementById('xp-bar').style.width=pct+'%';
+  document.getElementById('xp-sub').textContent=ST.level<10?'Next rank: '+nld.icon+' '+nld.title+' (Lvl '+(ST.level+1)+')':'★ MAX RANK — LEGENDARY TYPIST ★';
+  document.getElementById('s-wpm').textContent=ST.bestWpm||0;
+  document.getElementById('s-acc').textContent=ST.lastAcc?ST.lastAcc+'%':'—';
+  document.getElementById('s-streak').textContent=ST.streak||0;
+  document.getElementById('s-lessons').textContent=lessonsDone();
+  renderDashNext();
+  updateHeader();
+  drawCharacter(ST.level);
+  drawSideMap();
+}
+
+function renderDashNext(){
+  const area=document.getElementById('dash-next');
+  const nextL=LESSONS.find(l=>!lessonDone(l.id)&&lessonsDone()>=l.minLessons);
+  const dailyQ=QUESTS.filter(q=>q.daily&&!ST.completedToday.includes(q.id)&&lessonsDone()>=q.minLessons);
+  let html='';
+  if(nextL){
+    html+=`<div class="lesson-card active-lesson" onclick="openLesson('${nextL.id}')">
+      <div class="lesson-icon">📖</div>
+      <div class="lesson-body"><div class="lesson-name">NEXT LESSON: ${nextL.name}</div><div class="lesson-desc">${nextL.phase}</div></div>
+      <div class="lesson-badge badge-next">▶ START</div>
+    </div>`;
+  }
+  dailyQ.slice(0,2).forEach(q=>{
+    html+=`<div class="lesson-card active-lesson" style="border-color:var(--gold-dark);margin-top:8px" onclick="openQuest('${q.id}')">
+      <div class="lesson-icon">${q.icon}</div>
+      <div class="lesson-body"><div class="lesson-name">${q.name}</div><div class="lesson-desc">Daily Quest · +${q.xp} XP</div></div>
+      <div class="lesson-badge badge-next">★ GO</div>
+    </div>`;
+  });
+  if(!html)html='<div style="font-size:14px;color:var(--text-dim);padding:12px 0">All caught up! Check Lessons and Quest Map for more.</div>';
+  area.innerHTML=html;
+}
+
+function renderLessons(){
+  const area=document.getElementById('lessons-list');
+  let phases={};
+  LESSONS.forEach(l=>{if(!phases[l.phase])phases[l.phase]=[];phases[l.phase].push(l);});
+  let html='';
+  Object.entries(phases).forEach(([phase,lessons])=>{
+    html+=`<div class="sec-hdr">${phase}</div><div class="lesson-list">`;
+    lessons.forEach(l=>{
+      const done=lessonDone(l.id);
+      const unlocked=lessonsDone()>=l.minLessons;
+      const locked=!unlocked;
+      let badgeTxt=locked?'🔒 Locked':done?'✓ Done':'▶ Play';
+      let badgeCls=locked?'badge-locked':done?'badge-done':'badge-next';
+      let cardCls='lesson-card'+(locked?' locked':done?' done':' active-lesson');
+      const onclick=locked?'':` onclick="openLesson('${l.id}')"`;
+      html+=`<div class="${cardCls}"${onclick}>
+        <div class="lesson-icon">${done?'✅':'📖'}</div>
+        <div class="lesson-body"><div class="lesson-name">${l.name}</div><div class="lesson-desc">${l.keys&&l.keys.length?'Keys: '+l.keys.join(' '):'All keys'} · ${l.xp} XP</div></div>
+        <div class="lesson-badge ${badgeCls}">${badgeTxt}</div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  area.innerHTML=html;
+}
+
+// ============================================================
+//  LESSON FLOW
+// ============================================================
+let currentLesson=null,currentDrillIdx=0;
+function openLesson(id){
+  const l=LESSONS.find(x=>x.id===id);if(!l)return;
+  currentLesson=l;currentDrillIdx=0;
+  ST.currentActivity={type:'lesson',id};
+  document.getElementById('lesson-title-hdr').textContent='📖 '+l.name;
+  document.getElementById('lesson-intro-area').innerHTML=buildIntroHTML(l);
+  document.getElementById('lesson-intro-area').style.display='block';
+  document.getElementById('lesson-typing-area').style.display='none';
+  showScreen('screen-lesson');
+}
+function buildIntroHTML(l){
+  let keysHTML='';
+  if(l.keys&&l.keys.length)l.keys.forEach(k=>{keysHTML+=`<div class="intro-key">${k.toUpperCase()}</div>`;});
+  const introFmt=l.intro.replace(/\n\n/g,'</p><p style="margin-top:10px">').replace(/\n/g,'<br>');
+  return `<div class="lesson-intro">
+    <div class="intro-title">${l.name}</div>
+    <p class="intro-text">${introFmt}</p>
+    ${keysHTML?`<div class="intro-keys">${keysHTML}</div>`:''}
+    <div class="finger-hint">🖐 ${l.finger||''}</div>
+    <button class="start-lesson-btn" onclick="startLessonDrill()">▶ START LESSON</button>
+  </div>`;
+}
+function startLessonDrill(){
+  document.getElementById('lesson-intro-area').style.display='none';
+  document.getElementById('lesson-typing-area').style.display='block';
+  buildKB('kb-render');
+  loadDrill(currentLesson.drills[currentDrillIdx],'ll');
+}
+
+// ============================================================
+//  QUEST FLOW
+// ============================================================
+let currentQuest=null;
+function openQuest(id){
+  const q=QUESTS.find(x=>x.id===id);if(!q)return;
+  currentQuest=q;
+  ST.currentActivity={type:'quest',id};
+  document.getElementById('quest-title-hdr').textContent=q.icon+' '+q.name;
+  showScreen('screen-quest');
+  buildKB('kb-render-q');
+  const passage=q.passages[Math.floor(Math.random()*q.passages.length)];
+  loadDrill(passage,'qt');
+}
+
+// ============================================================
+//  TYPING ENGINE
+// ============================================================
+let TS={prefix:'',passage:'',typed:'',startTime:null,statsTimer:null,clockTimer:null,correct:0,errors:0};
+function loadDrill(passage,prefix){
+  clearTimers();
+  TS={prefix,passage,typed:'',startTime:null,statsTimer:null,clockTimer:null,correct:0,errors:0};
+  ['wpm','acc','time'].forEach(k=>document.getElementById(prefix+'-'+k).textContent=k==='acc'?'100%':k==='time'?'0:00':'0');
+  document.getElementById(prefix+'-prog').style.width='0%';
+  const inp=document.getElementById(prefix+'-input');inp.value='';
+  renderPassage(prefix,'');
+  hlKey(prefix==='ll'?'kb-render':'kb-render-q',passage[0]);
+  setTimeout(()=>inp.focus(),80);
+  inp.oninput=(e)=>handleInput(e,prefix);
+}
+function clearTimers(){if(TS.statsTimer)clearInterval(TS.statsTimer);if(TS.clockTimer)clearInterval(TS.clockTimer);}
+function renderPassage(prefix,typed){
+  const p=TS.passage;let html='';
+  for(let i=0;i<p.length;i++){
+    const c=p[i];
+    if(i<typed.length){html+=typed[i]===c?`<span class="ch-ok">${eH(c)}</span>`:`<span class="ch-err">${eH(c)}</span>`;}
+    else if(i===typed.length){html+=`<span class="ch-cur ch-todo">${eH(c)}</span>`;}
+    else{html+=`<span class="ch-todo">${eH(c)}</span>`;}
+  }
+  document.getElementById(prefix+'-passage').innerHTML=html;
+}
+function eH(c){return c===' '?'&nbsp;':c.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function handleInput(e,prefix){
+  const val=e.target.value;const p=TS.passage;
+  if(!TS.startTime&&val.length>0){
+    TS.startTime=Date.now();
+    TS.statsTimer=setInterval(()=>updateLive(prefix),500);
+    TS.clockTimer=setInterval(()=>updateClock(prefix),200);
+  }
+  TS.typed=val;let ok=0,err=0;
+  for(let i=0;i<val.length;i++){if(i<p.length){if(val[i]===p[i])ok++;else err++;}}
+  TS.correct=ok;TS.errors=err;
+  document.getElementById(prefix+'-prog').style.width=Math.min(100,Math.round((val.length/p.length)*100))+'%';
+  renderPassage(prefix,val);updateLive(prefix);
+  const kbId=prefix==='ll'?'kb-render':'kb-render-q';
+  if(val.length<p.length)hlKey(kbId,p[val.length]);else hlKey(kbId,'');
+  if(val.length>=p.length)finishDrill(prefix);
+}
+function updateLive(prefix){
+  if(!TS.startTime)return;
+  const el=(Date.now()-TS.startTime)/60000;
+  const wpm=el>0?Math.round((TS.correct/5)/el):0;
+  const acc=TS.typed.length>0?Math.round((TS.correct/TS.typed.length)*100):100;
+  document.getElementById(prefix+'-wpm').textContent=Math.min(wpm,200);
+  document.getElementById(prefix+'-acc').textContent=acc+'%';
+}
+function updateClock(prefix){
+  if(!TS.startTime)return;
+  const s=Math.round((Date.now()-TS.startTime)/1000);
+  document.getElementById(prefix+'-time').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+}
+function finishDrill(prefix){
+  clearTimers();
+  document.getElementById(prefix+'-input').oninput=null;
+  hlKey(prefix==='ll'?'kb-render':'kb-render-q','');
+  const el=(Date.now()-TS.startTime)/60000;
+  const wpm=el>0?Math.round((TS.correct/5)/el):0;
+  const acc=TS.typed.length>0?Math.round((TS.correct/TS.typed.length)*100):100;
+  if(wpm>(ST.bestWpm||0))ST.bestWpm=wpm;ST.lastAcc=acc;
+  if(prefix==='ll'){
+    currentDrillIdx++;
+    const l=currentLesson;
+    if(currentDrillIdx<l.drills.length){
+      showToast('Drill '+currentDrillIdx+'/'+l.drills.length+' — '+acc+'% accuracy!');
+      setTimeout(()=>loadDrill(l.drills[currentDrillIdx],'ll'),1500);
+    } else {
+      const isNew=!lessonDone(l.id);
+      if(isNew)ST.lessonsComplete.push(l.id);
+      if(!ST.completedToday.includes(l.id))ST.completedToday.push(l.id);
+      const newLvl=addXP(l.xp);
+      showFanfare({title:'LESSON COMPLETE!',sub:l.name,msg:getFMsg(acc),xp:l.xp,acc,wpm,stars:acc>=95?3:acc>=80?2:1,
+        onClose:()=>{if(newLvl)setTimeout(()=>showLevelUp(newLvl),200);showResults({wpm,acc,correct:TS.correct,errors:TS.errors,xp:l.xp,type:'lesson',isNew});}});
+    }
+  } else {
+    const q=currentQuest;let xpGain=0,bd=[];
+    const base=Math.round(q.xp*(acc/100));xpGain+=base;bd.push('Base XP ('+acc+'% acc): +'+base);
+    if(wpm>=20){const sb=Math.round(wpm/5);xpGain+=sb;bd.push('Speed bonus ('+wpm+' WPM): +'+sb);}
+    if(acc===100){xpGain+=20;bd.push('Perfect accuracy: +20');}else if(acc>=95){xpGain+=10;bd.push('High accuracy: +10');}
+    if(q.daily&&!ST.completedToday.includes(q.id)){xpGain+=15;bd.push('Daily bonus: +15');}
+    if(!ST.completedToday.includes(q.id))ST.completedToday.push(q.id);
+    const newLvl=addXP(xpGain);
+    showFanfare({title:'QUEST COMPLETE!',sub:q.name,msg:getFMsg(acc),xp:xpGain,acc,wpm,stars:acc>=95?3:acc>=80?2:1,
+      onClose:()=>{if(newLvl)setTimeout(()=>showLevelUp(newLvl),200);showResults({wpm,acc,correct:TS.correct,errors:TS.errors,xp:xpGain,type:'quest',breakdown:bd});}});
+  }
+}
+function getFMsg(acc){
+  if(acc===100)return'PERFECT! Not a single mistake. Gene, you are LEGENDARY!';
+  if(acc>=95)return'Incredible accuracy! Waheguru is proud. Khloe and Koda are zooming!';
+  if(acc>=88)return'Fantastic work, Gene! Your fingers grow stronger every day!';
+  if(acc>=75)return'Great effort, Scout! Keep practicing — mastery is just ahead!';
+  return'Every mistake teaches your fingers something new. Keep going, Gene!';
+}
+
+// ============================================================
+//  FANFARE
+// ============================================================
+let fanfareCB=null;
+function showFanfare({title,sub,msg,xp,acc,wpm,stars,onClose}){
+  fanfareCB=onClose;
+  document.getElementById('fanfare-title').textContent=title;
+  document.getElementById('fanfare-sub').textContent=sub;
+  document.getElementById('fanfare-msg').textContent=msg;
+  document.getElementById('fanfare-xp').textContent='+ '+xp+' XP  ·  '+wpm+' WPM  ·  '+acc+'% ACC';
+  document.getElementById('fanfare-stars').textContent=stars>=3?'⭐⭐⭐':stars>=2?'⭐⭐☆':'⭐☆☆';
+  launchConfetti();
+  document.getElementById('fanfare').classList.add('show');
+}
+function closeFanfare(){
+  document.getElementById('fanfare').classList.remove('show');
+  document.getElementById('confetti').innerHTML='';
+  if(fanfareCB){fanfareCB();fanfareCB=null;}
+}
+function launchConfetti(){
+  const wrap=document.getElementById('confetti');wrap.innerHTML='';
+  const cols=['#f5c542','#5a9e3b','#4fc3f7','#f472b6','#86efac','#fb923c','#818cf8'];
+  for(let i=0;i<70;i++){
+    const p=document.createElement('div');p.className='confetti-piece';
+    p.style.cssText='left:'+Math.random()*100+'%;background:'+cols[i%cols.length]+';width:'+(6+Math.random()*7)+'px;height:'+(6+Math.random()*7)+'px;animation-duration:'+(1.4+Math.random()*2)+'s;animation-delay:'+Math.random()*0.6+'s';
+    wrap.appendChild(p);
+  }
+}
+function showLevelUp(newLvl){
+  const ld=getLd(newLvl);
+  document.getElementById('modal-icon').textContent=ld.icon;
+  document.getElementById('modal-desc').textContent='Gene reached Level '+newLvl+'!';
+  document.getElementById('modal-rank').textContent=ld.icon+' '+ld.title;
+  document.getElementById('levelup-modal').classList.add('show');
+  drawCharacter(newLvl);
+}
+function closeLevelUp(){document.getElementById('levelup-modal').classList.remove('show');}
+
+// ============================================================
+//  RESULTS
+// ============================================================
+let retryFn=null,nextFn=null;
+function showResults({wpm,acc,correct,errors,xp,type,isNew,breakdown}){
+  document.getElementById('res-title').textContent=type==='lesson'?(isNew?'📖 LESSON MASTERED!':'📖 LESSON DONE!'):'⚔️ QUEST COMPLETE!';
+  document.getElementById('res-wpm').textContent=wpm;
+  document.getElementById('res-acc').textContent=acc+'%';
+  document.getElementById('res-correct').textContent=correct;
+  document.getElementById('res-errors').textContent=errors;
+  document.getElementById('res-xp').textContent='+ '+xp+' XP EARNED';
+  document.getElementById('res-breakdown').innerHTML=breakdown?breakdown.join('<br>'):'';
+  document.getElementById('res-msg').textContent=getFMsg(acc);
+  const nb=document.getElementById('res-next-btn');
+  if(type==='lesson'){
+    const nL=LESSONS.find(l=>!lessonDone(l.id)&&lessonsDone()>=l.minLessons);
+    if(nL){nb.style.display='inline-block';nextFn=()=>openLesson(nL.id);}else nb.style.display='none';
+  }else nb.style.display='none';
+  retryFn=type==='lesson'?()=>openLesson(currentLesson.id):()=>openQuest(currentQuest.id);
+  showScreen('screen-results');
+  updateDash();renderLessons();
+}
+function retryActivity(){if(retryFn)retryFn();}
+function nextActivity(){if(nextFn)nextFn();}
+
+// ============================================================
+//  NAV
+// ============================================================
+let lastTab='dash';
+function switchTab(tab){
+  lastTab=tab;
+  ['dash','lessons','quests'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('active',t===tab));
+  if(tab==='dash'){showScreen('screen-dash');updateDash();}
+  else if(tab==='lessons'){showScreen('screen-lessons');renderLessons();}
+  else if(tab==='quests'){showScreen('screen-quests');drawQuestMap();}
+}
+function showSaveScreen(){
+  ST.currentActivity={type:'save'};
+  showScreen('screen-save');
+  document.getElementById('name-input').value=ST.playerName;
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);if(el)el.classList.add('active');
+}
+function goBack(){
+  clearTimers();
+  if(ST.currentActivity){
+    const t=ST.currentActivity.type;
+    if(t==='save')switchTab(lastTab||'dash');
+    else if(t==='quest'){switchTab('quests');setTimeout(drawQuestMap,50);}
+    else switchTab('lessons');
+  } else switchTab(lastTab||'dash');
+}
+
+// ============================================================
+//  SAVE / LOAD / RESET
+// ============================================================
+function saveName(){
+  const n=document.getElementById('name-input').value.trim();
+  if(n){ST.playerName=n;saveST();updateHeader();showToast('Name saved: '+n);}
+}
+function exportSave(){
+  const blob=new Blob([JSON.stringify(ST,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='TypingQuest-'+ST.playerName.replace(/\s+/g,'-')+'-save.json';
+  a.click();showToast('Save file downloaded!');
+}
+function importSave(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{Object.assign(ST,JSON.parse(ev.target.result));saveST();showToast('Progress loaded! Welcome back, '+ST.playerName+'!');switchTab('dash');}
+    catch{showToast('Error reading save file.');}
+  };
+  r.readAsText(f);
+}
+function confirmReset(){document.getElementById('reset-modal').classList.add('show');}
+function closeResetModal(){document.getElementById('reset-modal').classList.remove('show');}
+function doReset(){
+  closeResetModal();
+  const name=ST.playerName;
+  ST={playerName:name,xp:0,level:1,bestWpm:0,lastAcc:null,streak:0,lessonsComplete:[],completedToday:[],lastPlayDate:new Date().toDateString(),currentActivity:null};
+  saveST();showToast('Progress reset. Good luck, '+name+'!');switchTab('dash');
+}
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2700);
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+loadST();
+updateDash();
+</script>
+</body>
+</html>
