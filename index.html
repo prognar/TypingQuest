@@ -140,13 +140,13 @@ body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-
 .prog-fill{height:100%;background:var(--pixel);transition:width .1s}
 
 /* PASSAGE */
-.passage-box{background:var(--surface);border:var(--bd);border-radius:7px;padding:16px 18px;margin-bottom:11px;font-size:21px;line-height:2.4;min-height:100px;font-family:'Nunito',sans-serif;letter-spacing:.3px;word-spacing:4px}
-.ch-ok{color:var(--acc-green)}
-.ch-err{color:var(--hp-red);background:rgba(239,68,68,.2);border-radius:2px}
+.passage-box{background:var(--surface);border:var(--bd);border-radius:7px;padding:16px 18px;margin-bottom:11px;font-size:19px;line-height:2.4;min-height:100px;font-family:'Nunito',sans-serif;letter-spacing:.3px;word-spacing:4px;white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word}
+.ch-ok{color:var(--acc-green);display:inline;white-space:pre-wrap}
+.ch-err{color:var(--hp-red);background:rgba(239,68,68,.2);border-radius:2px;display:inline;white-space:pre-wrap}
 .ch-cur{border-left:3px solid var(--text);animation:blink .7s infinite}
-.ch-todo{color:#3a3a5a}
+.ch-todo{color:#3a3a5a;display:inline;white-space:pre-wrap}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-.typing-input{width:100%;background:var(--surface);border:2px solid var(--pixel-dark);border-radius:6px;padding:13px 16px;color:var(--text);font-family:'Nunito',sans-serif;font-size:17px;outline:none;resize:none;height:58px}
+.typing-input{width:100%;background:var(--surface);border:2px solid var(--pixel-dark);border-radius:6px;padding:13px 16px;color:var(--text);font-family:'Nunito',sans-serif;font-size:17px;outline:none;resize:none;height:58px;word-break:break-word;overflow-wrap:break-word}
 .typing-input:focus{border-color:var(--pixel)}
 .typing-hint{font-size:12px;color:var(--text-dim);margin:7px 0 11px;text-align:center}
 
